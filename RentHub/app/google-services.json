@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "181066767259",
+    "project_id": "quanlyphongtromobile",
+    "storage_bucket": "quanlyphongtromobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181066767259:android:0a5b5029f9649a9132df3e",
+        "android_client_info": {
+          "package_name": "com.example.renthub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrtPW6FuMdJi30ZM7gYhBzudq-VDKT2e4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

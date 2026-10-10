@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">RentHub</string>
+    <string name="app_name">Renthub</string>
+    <string name="role_selection_title">Bạn đang sử dụng\nRenthub với vai trò?</string>
 </resources>

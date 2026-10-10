@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <!-- Person Head -->
+    <path
+        android:fillColor="#FFCC80"
+        android:pathData="M26,30a7,7 0 1,0 0,-14 7,7 0 0,0 0,14z"/>
+    <!-- Hair -->
+    <path
+        android:fillColor="#263238"
+        android:pathData="M20,19c1,-4 8,-7 12,-3 1,2 0,5 -2,5 -3,-1 -4,1 -6,2 -2,1 -3,0 -4,-4z"/>
+    <!-- Person Body / Shirt -->
+    <path
+        android:fillColor="#00897B"
+        android:pathData="M16,56c0,-8 5,-14 11,-14s11,6 11,14z"/>
+    <!-- Key -->
+    <path
+        android:fillColor="#26A69A"
+        android:pathData="M48,28a6,6 0 1,0 0,12 6,6 0 0,0 3,-1l7,7 3,-3 -2,-2 2,-2 -3,-3 -3,3 -3,-3a6,6 0 0,0 -4,-8zm0,4a2,2 0 1,1 0,4 2,2 0 0,1 0,-4z"/>
+</vector>

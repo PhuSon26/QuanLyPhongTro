@@ -2,4 +2,23 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Primary Brand Colors -->
+    <color name="teal_primary">#0E8B75</color>
+    <color name="teal_primary_dark">#0A6E5C</color>
+    <color name="teal_light">#E0F2EF</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#0D2C42</color>
+    <color name="text_secondary">#6A7B8A</color>
+    <color name="text_hint">#9EABB7</color>
+    
+    <!-- Role Cards Background -->
+    <color name="card_landlord_bg">#EFF8F6</color>
+    <color name="card_tenant_bg">#F0F7FE</color>
+    
+    <!-- Inputs & Borders -->
+    <color name="input_bg">#FFFFFF</color>
+    <color name="input_stroke">#E2E8F0</color>
+    <color name="progress_inactive">#D3E4E0</color>
 </resources>

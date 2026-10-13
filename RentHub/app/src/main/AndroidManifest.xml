@@ -36,5 +36,13 @@
         <activity
             android:name=".ui.auth.ForgotPasswordActivity"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.landlord.LandlordMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.tenant.TenantMainActivity"
+            android:exported="false" />
     </application>
 </manifest>

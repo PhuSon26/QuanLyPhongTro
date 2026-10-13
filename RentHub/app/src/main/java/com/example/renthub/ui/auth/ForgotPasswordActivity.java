@@ -1,8 +1,8 @@
 package com.example.renthub.ui.auth;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -12,20 +12,23 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.renthub.R;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
-
-    public static final String EXTRA_ACCOUNT = "EXTRA_ACCOUNT";
 
     private ImageView btnBack;
     private EditText edtAccount;
     private Button btnSendCode;
     private TextView tvBackToLogin;
 
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
+
+        mAuth = FirebaseAuth.getInstance();
 
         initViews();
         setupListeners();
@@ -43,17 +46,38 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         tvBackToLogin.setOnClickListener(v -> finish());
 
         btnSendCode.setOnClickListener(v -> {
-            String account = edtAccount.getText().toString().trim();
-            if (TextUtils.isEmpty(account)) {
-                edtAccount.setError("Vui lòng nhập email hoặc số điện thoại");
+            String email = edtAccount.getText().toString().trim();
+
+            if (TextUtils.isEmpty(email)) {
+                edtAccount.setError("Vui lòng nhập email của bạn");
                 edtAccount.requestFocus();
                 return;
             }
 
-            // Chuyển sang màn hình Nhập mã xác nhận OTP
-            Intent intent = new Intent(ForgotPasswordActivity.this, OtpVerificationActivity.class);
-            intent.putExtra(EXTRA_ACCOUNT, account);
-            startActivity(intent);
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                edtAccount.setError("Email không hợp lệ (VD: example@gmail.com)");
+                edtAccount.requestFocus();
+                return;
+            }
+
+            sendEmailReset(email);
         });
+    }
+
+    private void sendEmailReset(String email) {
+        btnSendCode.setEnabled(false);
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    btnSendCode.setEnabled(true);
+                    if (task.isSuccessful()) {
+                        Toast.makeText(ForgotPasswordActivity.this,
+                                "Đã gửi liên kết đặt lại mật khẩu! Vui lòng kiểm tra hộp thư Gmail của bạn.",
+                                Toast.LENGTH_LONG).show();
+                        finish();
+                    } else {
+                        String err = task.getException() != null ? task.getException().getMessage() : "Gửi email thất bại";
+                        Toast.makeText(ForgotPasswordActivity.this, "Lỗi: " + err, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }

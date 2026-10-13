@@ -1,5 +1,6 @@
 package com.example.renthub.ui.auth;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -13,6 +14,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.renthub.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -26,10 +34,16 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean isConfirmPasswordVisible = false;
     private String currentRole = RoleSelectionActivity.ROLE_LANDLORD;
 
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         initViews();
         setupRoleData();
@@ -55,7 +69,6 @@ public class RegisterActivity extends AppCompatActivity {
             currentRole = getIntent().getStringExtra(RoleSelectionActivity.EXTRA_ROLE);
         }
 
-        // Cập nhật tiêu đề phù hợp với vai trò được chọn
         if (RoleSelectionActivity.ROLE_TENANT.equals(currentRole)) {
             tvRoleTitle.setText("Tài khoản Người thuê");
         } else {
@@ -64,29 +77,21 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // Nút quay lại
         btnBack.setOnClickListener(v -> finish());
 
-        // Bật/tắt ẩn hiện mật khẩu
         ivTogglePassword.setOnClickListener(v -> {
             isPasswordVisible = !isPasswordVisible;
             togglePasswordVisibility(edtPassword, ivTogglePassword, isPasswordVisible);
         });
 
-        // Bật/tắt ẩn hiện xác nhận mật khẩu
         ivToggleConfirmPassword.setOnClickListener(v -> {
             isConfirmPasswordVisible = !isConfirmPasswordVisible;
             togglePasswordVisibility(edtConfirmPassword, ivToggleConfirmPassword, isConfirmPasswordVisible);
         });
 
-        // Nút đăng ký
         btnRegister.setOnClickListener(v -> handleRegister());
 
-        // Nút chuyển sang Đăng nhập
-        tvLoginAction.setOnClickListener(v -> {
-            Toast.makeText(this, "Chuyển tới màn hình Đăng nhập", Toast.LENGTH_SHORT).show();
-            finish();
-        });
+        tvLoginAction.setOnClickListener(v -> finish());
     }
 
     private void togglePasswordVisibility(EditText editText, ImageView toggleView, boolean isVisible) {
@@ -97,7 +102,6 @@ public class RegisterActivity extends AppCompatActivity {
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             toggleView.setImageResource(R.drawable.ic_visibility);
         }
-        // Giữ con trỏ chuột ở cuối dòng
         editText.setSelection(editText.getText().length());
     }
 
@@ -108,7 +112,6 @@ public class RegisterActivity extends AppCompatActivity {
         String password = edtPassword.getText().toString().trim();
         String confirmPassword = edtConfirmPassword.getText().toString().trim();
 
-        // Kiểm tra hợp lệ dữ liệu nhập
         if (TextUtils.isEmpty(fullName)) {
             edtFullName.setError("Vui lòng nhập họ và tên");
             edtFullName.requestFocus();
@@ -139,10 +142,45 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Đã nhập đúng thông tin
-        String roleText = RoleSelectionActivity.ROLE_TENANT.equals(currentRole) ? "Người thuê" : "Chủ trọ";
-        Toast.makeText(this, "Đăng ký thành công tài khoản " + roleText + "!", Toast.LENGTH_LONG).show();
-        
-        // TODO: Kết nối Firebase Auth & Firestore tại đây
+        btnRegister.setEnabled(false);
+
+        // Tạo tài khoản Firebase Auth bằng Email & Mật khẩu
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            saveUserToFirestore(user.getUid(), fullName, email, phone, currentRole);
+                        }
+                    } else {
+                        btnRegister.setEnabled(true);
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Đăng ký thất bại";
+                        Toast.makeText(RegisterActivity.this, "Lỗi đăng ký: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void saveUserToFirestore(String userId, String fullName, String email, String phone, String role) {
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("uid", userId);
+        userData.put("fullName", fullName);
+        userData.put("email", email);
+        userData.put("phone", phone);
+        userData.put("role", role);
+        userData.put("createdAt", FieldValue.serverTimestamp());
+
+        db.collection("users").document(userId)
+                .set(userData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnRegister.setEnabled(true);
+                    Toast.makeText(RegisterActivity.this, "Lỗi lưu thông tin: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

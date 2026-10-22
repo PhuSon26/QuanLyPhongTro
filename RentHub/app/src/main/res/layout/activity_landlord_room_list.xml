@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F6F9F8"
+    android:orientation="vertical">
+
+    <!-- TOP BAR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:background="#FFFFFF"
+        android:paddingHorizontal="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- BUTTON BACK -->
+        <ImageButton
+            android:id="@+id/btnBackRooms"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/rh_ic_back"
+            app:tint="#14344B"
+            android:contentDescription="Quay lại"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Danh sách phòng"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#14344B"/>
+
+        <!-- BUTTON THÊM -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddRoom"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:text="Thêm"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#148369"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/rh_ic_add"
+            app:iconTint="#FFFFFF"
+            app:iconSize="19dp"
+            app:iconPadding="4dp"/>
+    </LinearLayout>
+
+    <!-- THỐNG KÊ, TÌM KIẾM, BỘ LỌC -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Phòng trọ của tôi"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#14344B"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="Quản lý và theo dõi tình trạng phòng trọ"
+            android:textSize="13sp"
+            android:textColor="#718096"/>
+
+        <!-- SUMMARY -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="17dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="98dp"
+                android:layout_weight="1"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E3F5ED">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="04"
+                        android:textSize="25sp"
+                        android:textStyle="bold"
+                        android:textColor="#148369"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tổng phòng"
+                        android:textSize="11sp"
+                        android:textColor="#38564E"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <Space
+                android:layout_width="9dp"
+                android:layout_height="1dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="98dp"
+                android:layout_weight="1"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#EAF1FC">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="01"
+                        android:textSize="25sp"
+                        android:textStyle="bold"
+                        android:textColor="#2563A6"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Đang thuê"
+                        android:textSize="11sp"
+                        android:textColor="#38516E"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <Space
+                android:layout_width="9dp"
+                android:layout_height="1dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="98dp"
+                android:layout_weight="1"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFF3DF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="02"
+                        android:textSize="25sp"
+                        android:textStyle="bold"
+                        android:textColor="#B7791F"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Còn trống"
+                        android:textSize="11sp"
+                        android:textColor="#735B37"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- SEARCH INPUT -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilSearchRoom"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:hintEnabled="false"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="#D7E3DE"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:startIconDrawable="@drawable/rh_ic_search"
+            app:startIconTint="#86939B">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtSearchRoom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tìm tên phòng, mã phòng..."
+                android:singleLine="true"
+                android:inputType="text"
+                android:textSize="14sp"
+                android:textColor="#14344B"
+                android:textColorHint="#9CA3AF"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- FILTER BUTTONS -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="Tất cả"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#148369"
+                    app:cornerRadius="20dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterAvailable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="5dp"
+                    android:text="Còn trống"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textColor="#63737C"
+                    android:backgroundTint="#E9EFED"
+                    app:cornerRadius="20dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterOccupied"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="5dp"
+                    android:text="Đang thuê"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textColor="#63737C"
+                    android:backgroundTint="#E9EFED"
+                    app:cornerRadius="20dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterMaintenance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="5dp"
+                    android:text="Bảo trì"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textColor="#63737C"
+                    android:backgroundTint="#E9EFED"
+                    app:cornerRadius="20dp"/>
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- DANH SÁCH -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tất cả phòng"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="#14344B"/>
+
+            <TextView
+                android:id="@+id/tvRoomCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4 phòng"
+                android:textSize="12sp"
+                android:textColor="#718096"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- RECYCLERVIEW -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRooms"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="14dp"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        tools:listitem="@layout/item_landlord_room"
+        tools:itemCount="4"/>
+
+    <!-- BOTTOM NAVIGATION -->
+    <include layout="@layout/layout_rh_bottom_nav"/>
+
+</LinearLayout>

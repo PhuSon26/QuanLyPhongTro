@@ -19,6 +19,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
 
     private List<Room> roomList;
     private OnRoomActionListener listener;
+    private boolean isTenant = false;
 
     public interface OnRoomActionListener {
         void onView(Room room);
@@ -31,6 +32,13 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
 
     public RoomAdapter(List<Room> roomList, OnRoomActionListener listener) {
         this.roomList = roomList;
+        this.listener = listener;
+        this.isTenant = false;
+    }
+
+    public RoomAdapter(List<Room> rooms, boolean isTenant, OnRoomActionListener listener) {
+        this.roomList = rooms;
+        this.isTenant = isTenant;
         this.listener = listener;
     }
 
@@ -52,13 +60,17 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
 
         holder.tvRoomName.setText(room.getName());
         holder.tvRoomLocation.setText(room.getLocation());
-        holder.tvRoomArea.setText(room.getArea().contains("m²") ? room.getArea() : room.getArea() + " m²");
 
-        String priceText = room.getPrice().contains("đ") ? room.getPrice() : room.getPrice() + "đ/tháng";
-        holder.tvRoomPrice.setText(priceText);
+        if (room.getArea() != null) {
+            holder.tvRoomArea.setText(room.getArea().contains("m²") ? room.getArea() : room.getArea() + " m²");
+        }
 
-        holder.tvRoomStatus.setText(room.getStatus());
+        if (room.getPrice() != null) {
+            String priceText = room.getPrice().contains("đ") ? room.getPrice() : room.getPrice() + "đ/tháng";
+            holder.tvRoomPrice.setText(priceText);
+        }
 
+        // --- XỬ LÝ TRẠNG THÁI VÀ MÀU SẮC THẺ ---
         int cardBgColor;
         int textColor;
 
@@ -77,16 +89,34 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             holder.tvRoomStatus.setText("Còn trống");
         }
 
-        holder.cardRoomStatus.setCardBackgroundColor(cardBgColor);
+        if (holder.cardRoomStatus != null) {
+            holder.cardRoomStatus.setCardBackgroundColor(cardBgColor);
+        }
         holder.tvRoomStatus.setTextColor(textColor);
 
-        holder.btnViewRoom.setOnClickListener(v -> {
-            if (listener != null) listener.onView(room);
-        });
+        // --- XỬ LÝ ẨN / HIỆN NÚT XÓA DỰA VÀO VAI TRỜ (isTenant) ---
+        if (isTenant) {
+            if (holder.btnDeleteRoom != null) {
+                holder.btnDeleteRoom.setVisibility(View.GONE); // Ẩn nút Xóa nếu là Người thuê
+            }
+        } else {
+            if (holder.btnDeleteRoom != null) {
+                holder.btnDeleteRoom.setVisibility(View.VISIBLE); // Hiện nút Xóa nếu là Chủ trọ
+            }
+        }
 
-        holder.btnDeleteRoom.setOnClickListener(v -> {
-            if (listener != null) listener.onDelete(room);
-        });
+        // --- BẮT SỰ KIỆN CLICK NÚT ---
+        if (holder.btnViewRoom != null) {
+            holder.btnViewRoom.setOnClickListener(v -> {
+                if (listener != null) listener.onView(room);
+            });
+        }
+
+        if (holder.btnDeleteRoom != null) {
+            holder.btnDeleteRoom.setOnClickListener(v -> {
+                if (listener != null) listener.onDelete(room);
+            });
+        }
     }
 
     @Override

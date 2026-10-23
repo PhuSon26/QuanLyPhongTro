@@ -52,6 +52,10 @@
             android:exported="false" />
 
         <activity
+             android:name=".ui.tenant.TenantRoomListActivity"
+        android:exported="false" />
+
+        <activity
             android:name=".ui.auth.ForgotPasswordActivity"
             android:exported="true" />
 

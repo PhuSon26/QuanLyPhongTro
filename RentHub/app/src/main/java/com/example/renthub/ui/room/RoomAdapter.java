@@ -4,11 +4,13 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.renthub.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -48,33 +50,40 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
 
         holder.tvRoomName.setText(room.getName());
         holder.tvRoomLocation.setText(room.getLocation());
-        holder.tvRoomArea.setText(room.getArea().contains("m²") ? room.getArea() : room.getArea() + " m²");
 
-        String priceText = room.getPrice().contains("đ") ? room.getPrice() : room.getPrice() + "đ/tháng";
-        holder.tvRoomPrice.setText(priceText);
+        String area = room.getArea() != null ? room.getArea() : "";
+        holder.tvRoomArea.setText(area.contains("m²") ? area : area + " m²");
 
-        holder.tvRoomStatus.setText(room.getStatus());
+        String price = room.getPrice() != null ? room.getPrice() : "";
+        holder.tvRoomPrice.setText(price.contains("đ") ? price : price + "đ/tháng");
 
-        int cardBgColor;
-        int textColor;
+        // HIỂN THỊ ẢNH NẾU CÓ, NẾU KHÔNG CÓ THÌ DÙNG ICON NHÀ VÀO THẺ DANH SÁCH
+        if (room.getImageUrl() != null && !room.getImageUrl().trim().isEmpty()) {
+            holder.imgRoomCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Glide.with(holder.itemView.getContext())
+                    .load(room.getImageUrl())
+                    .centerCrop()
+                    .placeholder(R.drawable.rh_ic_room)
+                    .into(holder.imgRoomCover);
+        } else {
+            holder.imgRoomCover.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            holder.imgRoomCover.setImageResource(R.drawable.rh_ic_room);
+        }
 
         String status = room.getStatus() != null ? room.getStatus().toLowerCase() : "";
         if (status.contains("thuê") || status.contains("occupied")) {
-            cardBgColor = Color.parseColor("#E8F0FE");
-            textColor = Color.parseColor("#2563A6");
+            holder.cardRoomStatus.setCardBackgroundColor(Color.parseColor("#E8F0FE"));
+            holder.tvRoomStatus.setTextColor(Color.parseColor("#2563A6"));
             holder.tvRoomStatus.setText("Đang thuê");
         } else if (status.contains("trì") || status.contains("maintenance")) {
-            cardBgColor = Color.parseColor("#FFF3E0");
-            textColor = Color.parseColor("#B7791F");
+            holder.cardRoomStatus.setCardBackgroundColor(Color.parseColor("#FFF3E0"));
+            holder.tvRoomStatus.setTextColor(Color.parseColor("#B7791F"));
             holder.tvRoomStatus.setText("Bảo trì");
         } else {
-            cardBgColor = Color.parseColor("#E2F5EA");
-            textColor = Color.parseColor("#148369");
+            holder.cardRoomStatus.setCardBackgroundColor(Color.parseColor("#E2F5EA"));
+            holder.tvRoomStatus.setTextColor(Color.parseColor("#148369"));
             holder.tvRoomStatus.setText("Còn trống");
         }
-
-        holder.cardRoomStatus.setCardBackgroundColor(cardBgColor);
-        holder.tvRoomStatus.setTextColor(textColor);
 
         holder.btnViewRoom.setOnClickListener(v -> {
             if (listener != null) listener.onView(room);
@@ -91,12 +100,14 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
     }
 
     static class RoomViewHolder extends RecyclerView.ViewHolder {
+        ImageView imgRoomCover;
         TextView tvRoomName, tvRoomLocation, tvRoomArea, tvRoomPrice, tvRoomStatus;
         MaterialCardView cardRoomStatus;
         MaterialButton btnViewRoom, btnDeleteRoom;
 
         RoomViewHolder(@NonNull View itemView) {
             super(itemView);
+            imgRoomCover = itemView.findViewById(R.id.imgRoomCover);
             tvRoomName = itemView.findViewById(R.id.tvRoomName);
             tvRoomLocation = itemView.findViewById(R.id.tvRoomLocation);
             tvRoomArea = itemView.findViewById(R.id.tvRoomArea);

@@ -1,6 +1,8 @@
 package com.example.renthub.ui.room;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Room implements Serializable {
     private String id;
@@ -8,26 +10,16 @@ public class Room implements Serializable {
     private String location;
     private String area;
     private String price;
-    private String status; // "AVAILABLE" (Còn trống), "OCCUPIED" (Đang thuê), "MAINTENANCE" (Bảo trì)
-    private String landlordId;
+    private String status;
     private String tenantName;
     private String tenantPhone;
+    private String landlordId;
 
-    public Room() { }
+    private String imageUrl;
+    private List<String> images;
 
-    public Room(String id, String name, String location, String area, String price, String status, String landlordId, String tenantName, String tenantPhone) {
-        this.id = id;
-        this.name = name;
-        this.location = location;
-        this.area = area;
-        this.price = price;
-        this.status = status;
-        this.landlordId = landlordId;
-        this.tenantName = tenantName;
-        this.tenantPhone = tenantPhone;
-    }
+    public Room() {}
 
-    // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -46,12 +38,37 @@ public class Room implements Serializable {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public String getLandlordId() { return landlordId; }
-    public void setLandlordId(String landlordId) { this.landlordId = landlordId; }
-
     public String getTenantName() { return tenantName; }
     public void setTenantName(String tenantName) { this.tenantName = tenantName; }
 
     public String getTenantPhone() { return tenantPhone; }
     public void setTenantPhone(String tenantPhone) { this.tenantPhone = tenantPhone; }
+
+    public String getLandlordId() { return landlordId; }
+    public void setLandlordId(String landlordId) { this.landlordId = landlordId; }
+
+    public String getImageUrl() {
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            if (images != null && !images.isEmpty()) return images.get(0);
+            return null; // Không gán ảnh giả
+        }
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public List<String> getImages() {
+        if (images == null) {
+            return new ArrayList<>(); // Trả về danh sách rỗng nếu chưa thêm ảnh
+        }
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
+        if (images != null && !images.isEmpty()) {
+            this.imageUrl = images.get(0);
+        } else {
+            this.imageUrl = null;
+        }
+    }
 }

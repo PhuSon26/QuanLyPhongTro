@@ -4,15 +4,25 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
 import com.example.renthub.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+
+import java.util.List;
 
 public class RoomDetailActivity extends AppCompatActivity {
 
@@ -21,8 +31,10 @@ public class RoomDetailActivity extends AppCompatActivity {
     private ImageButton btnBack, btnCallTenant;
     private MaterialButton btnEditRoomBottom;
     private TextView tvDetailRoomName, tvDetailLocation, tvDetailStatus, tvDetailPrice, tvDetailArea;
-    private TextView tvDetailTenantName, tvDetailTenantPhone;
+    private TextView tvDetailTenantName, tvDetailTenantPhone, tvImageCounter;
     private MaterialCardView cardStatusBadge;
+    private ViewPager2 vpRoomImages;
+    private FrameLayout flImageContainer;
 
     private Room currentRoom;
 
@@ -49,7 +61,11 @@ public class RoomDetailActivity extends AppCompatActivity {
 
         tvDetailTenantName = findViewById(R.id.tvDetailTenantName);
         tvDetailTenantPhone = findViewById(R.id.tvDetailTenantPhone);
+        tvImageCounter = findViewById(R.id.tvImageCounter);
         cardStatusBadge = findViewById(R.id.cardStatusBadge);
+
+        vpRoomImages = findViewById(R.id.vpRoomImages);
+        flImageContainer = findViewById(R.id.flImageContainer);
     }
 
     private void getIntentData() {
@@ -57,7 +73,31 @@ public class RoomDetailActivity extends AppCompatActivity {
             currentRoom = (Room) getIntent().getSerializableExtra(EXTRA_ROOM);
             if (currentRoom != null) {
                 displayRoomData();
+                setupImageSlider();
             }
+        }
+    }
+
+    private void setupImageSlider() {
+        List<String> imageList = currentRoom.getImages();
+
+        // CHỈ HIỂN THỊ SLIDER KHI PHÒNG CÓ ẢNH
+        if (imageList != null && !imageList.isEmpty()) {
+            flImageContainer.setVisibility(View.VISIBLE);
+            ImageSliderAdapter adapter = new ImageSliderAdapter(imageList);
+            vpRoomImages.setAdapter(adapter);
+
+            tvImageCounter.setText("1/" + imageList.size());
+
+            vpRoomImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
+                    tvImageCounter.setText((position + 1) + "/" + imageList.size());
+                }
+            });
+        } else {
+            flImageContainer.setVisibility(View.GONE);
         }
     }
 
@@ -105,8 +145,6 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
-
-        // Nút chuyển sang màn hình Sửa phòng duy nhất ở phía dưới
         btnEditRoomBottom.setOnClickListener(v -> openEditScreen());
 
         btnCallTenant.setOnClickListener(v -> {
@@ -125,5 +163,41 @@ public class RoomDetailActivity extends AppCompatActivity {
         intent.putExtra(AddEditRoomActivity.EXTRA_ROOM, currentRoom);
         startActivity(intent);
         finish();
+    }
+
+    private static class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.ViewHolder> {
+        private final List<String> images;
+
+        ImageSliderAdapter(List<String> images) { this.images = images; }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            ImageView imageView = new ImageView(parent.getContext());
+            imageView.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            return new ViewHolder(imageView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Glide.with(holder.itemView.getContext())
+                    .load(images.get(position))
+                    .centerCrop()
+                    .into(holder.imageView);
+        }
+
+        @Override
+        public int getItemCount() { return images != null ? images.size() : 0; }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView imageView;
+            ViewHolder(@NonNull ImageView itemView) {
+                super(itemView);
+                this.imageView = itemView;
+            }
+        }
     }
 }

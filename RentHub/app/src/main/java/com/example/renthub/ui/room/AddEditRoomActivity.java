@@ -1,23 +1,36 @@
 package com.example.renthub.ui.room;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.renthub.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AddEditRoomActivity extends AppCompatActivity {
@@ -31,12 +44,27 @@ public class AddEditRoomActivity extends AppCompatActivity {
     private TextInputEditText edtTenantName, edtTenantPhone;
     private RadioGroup rgStatus;
     private RadioButton rbAvailable, rbOccupied, rbMaintenance;
-    private MaterialButton btnSaveRoom;
+    private MaterialButton btnSaveRoom, btnAddRoomImages;
+    private RecyclerView rvAddImages;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private Room currentRoom = null;
     private boolean isViewOnly = false;
+
+    private AddRoomImageAdapter imageAdapter;
+    private final List<String> roomImageList = new ArrayList<>();
+
+    // LỰA CHỌN NHIỀU ẢNH TỰ CHỌN TỪ THIẾT BỊ
+    private final ActivityResultLauncher<String> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), uris -> {
+                if (uris != null && !uris.isEmpty()) {
+                    for (Uri uri : uris) {
+                        roomImageList.add(uri.toString());
+                    }
+                    if (imageAdapter != null) imageAdapter.notifyDataSetChanged();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +75,7 @@ public class AddEditRoomActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         initViews();
+        setupImageRecyclerView();
         checkIntentData();
         setupListeners();
     }
@@ -67,6 +96,19 @@ public class AddEditRoomActivity extends AppCompatActivity {
         rbOccupied = findViewById(R.id.rbOccupied);
         rbMaintenance = findViewById(R.id.rbMaintenance);
         btnSaveRoom = findViewById(R.id.btnSaveRoom);
+
+        btnAddRoomImages = findViewById(R.id.btnAddRoomImages);
+        rvAddImages = findViewById(R.id.rvAddImages);
+    }
+
+    private void setupImageRecyclerView() {
+        imageAdapter = new AddRoomImageAdapter(roomImageList, position -> {
+            roomImageList.remove(position);
+            imageAdapter.notifyItemRemoved(position);
+        });
+
+        rvAddImages.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rvAddImages.setAdapter(imageAdapter);
     }
 
     private void checkIntentData() {
@@ -98,21 +140,25 @@ public class AddEditRoomActivity extends AppCompatActivity {
                     } else {
                         rbAvailable.setChecked(true);
                     }
+
+                    // Tải danh sách ảnh phòng nếu có sẵn
+                    if (currentRoom.getImages() != null && !currentRoom.getImages().isEmpty()) {
+                        roomImageList.clear();
+                        roomImageList.addAll(currentRoom.getImages());
+                        if (imageAdapter != null) imageAdapter.notifyDataSetChanged();
+                    }
                 }
             }
         }
 
-        // Bật chế độ chỉ xem
         if (isViewOnly) {
             tvTitle.setText("Chi tiết phòng trọ");
-            btnSaveRoom.setVisibility(View.GONE); // Ẩn nút Lưu
-            disableEditing(); // Khóa tất cả các ô nhập
+            btnSaveRoom.setVisibility(View.GONE);
+            btnAddRoomImages.setVisibility(View.GONE);
+            disableEditing();
         }
     }
 
-    /**
-     * KHÓA FORM KHÔNG CHO PHÉP NHẬP DỮ LIỆU
-     */
     private void disableEditing() {
         edtRoomName.setEnabled(false);
         edtRoomLocation.setEnabled(false);
@@ -128,6 +174,7 @@ public class AddEditRoomActivity extends AppCompatActivity {
 
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
+        btnAddRoomImages.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
         btnSaveRoom.setOnClickListener(v -> saveRoomToFirestore());
     }
 
@@ -169,6 +216,13 @@ public class AddEditRoomActivity extends AppCompatActivity {
         roomData.put("tenantName", tenantName);
         roomData.put("tenantPhone", tenantPhone);
 
+        roomData.put("images", roomImageList);
+        if (!roomImageList.isEmpty()) {
+            roomData.put("imageUrl", roomImageList.get(0));
+        } else {
+            roomData.put("imageUrl", "");
+        }
+
         btnSaveRoom.setEnabled(false);
 
         if (currentRoom != null && currentRoom.getId() != null) {
@@ -193,6 +247,64 @@ public class AddEditRoomActivity extends AppCompatActivity {
                         btnSaveRoom.setEnabled(true);
                         Toast.makeText(this, "Lỗi thêm phòng: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
+        }
+    }
+
+    private static class AddRoomImageAdapter extends RecyclerView.Adapter<AddRoomImageAdapter.ViewHolder> {
+        private final List<String> images;
+        private final OnRemoveListener listener;
+
+        interface OnRemoveListener { void onRemove(int position); }
+
+        AddRoomImageAdapter(List<String> images, OnRemoveListener listener) {
+            this.images = images;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            int dp90 = (int) (90 * parent.getContext().getResources().getDisplayMetrics().density);
+            int dp8 = (int) (8 * parent.getContext().getResources().getDisplayMetrics().density);
+
+            MaterialCardView cardView = new MaterialCardView(parent.getContext());
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp90, dp90);
+            params.setMargins(0, 0, dp8, 0);
+            cardView.setLayoutParams(params);
+            cardView.setRadius(24f);
+            cardView.setStrokeColor(android.graphics.Color.parseColor("#D3DFDA"));
+            cardView.setStrokeWidth(2);
+
+            ImageView imageView = new ImageView(parent.getContext());
+            imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            cardView.addView(imageView);
+
+            return new ViewHolder(cardView, imageView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Glide.with(holder.itemView.getContext())
+                    .load(images.get(position))
+                    .centerCrop()
+                    .into(holder.imageView);
+
+            holder.itemView.setOnLongClickListener(v -> {
+                if (listener != null) listener.onRemove(holder.getAdapterPosition());
+                return true;
+            });
+        }
+
+        @Override
+        public int getItemCount() { return images != null ? images.size() : 0; }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView imageView;
+            ViewHolder(@NonNull ViewGroup itemView, ImageView img) {
+                super(itemView);
+                this.imageView = img;
+            }
         }
     }
 }

@@ -1,59 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F6F9F8"
-    android:fillViewport="true">
+    android:orientation="vertical">
 
+    <!-- TOP BAR -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="60dp"
+        android:background="#FFFFFF"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
 
-        <!-- TOP BAR -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="68dp"
-            android:background="#FFFFFF"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Quay lại"
+            android:padding="10dp"
+            android:src="@drawable/rh_ic_back"
+            app:tint="#14344B" />
 
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Quay lại"
-                android:padding="10dp"
-                android:src="@drawable/rh_ic_back"
-                app:tint="#14344B" />
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="Thêm phòng trọ mới"
+            android:textColor="#14344B"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Thêm phòng mới"
-                android:textColor="#14344B"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="20dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:orientation="vertical">
 
-            <!-- PHẦN 1: THÔNG TIN PHÒNG TRỌ -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Thông tin phòng"
-                android:textColor="#148369"
+                android:text="Thông tin cơ bản"
+                android:textColor="#14344B"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -61,17 +60,13 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusTopStart="10dp">
+                android:layout_marginTop="10dp"
+                android:hint="Tên/Mã phòng (Ví dụ: Phòng A101)">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtRoomName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Tên phòng (VD: Phòng A101)"
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -80,16 +75,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusTopStart="10dp">
+                android:hint="Vị trí (Ví dụ: Dãy A, Tầng 1)">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtRoomLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Vị trí (VD: Dãy A • Tầng 1)"
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -104,16 +95,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:boxCornerRadiusBottomEnd="10dp"
-                    app:boxCornerRadiusBottomStart="10dp"
-                    app:boxCornerRadiusTopEnd="10dp"
-                    app:boxCornerRadiusTopStart="10dp">
+                    android:hint="Diện tích (m²)">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtRoomArea"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Diện tích (m²)"
                         android:inputType="numberDecimal" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -126,28 +113,23 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:boxCornerRadiusBottomEnd="10dp"
-                    app:boxCornerRadiusBottomStart="10dp"
-                    app:boxCornerRadiusTopEnd="10dp"
-                    app:boxCornerRadiusTopStart="10dp">
+                    android:hint="Giá thuê (đ/tháng)">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtRoomPrice"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Giá thuê (VNĐ)"
                         android:inputType="number" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- TRẠNG THÁI PHÒNG -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:text="Trạng thái phòng"
                 android:textColor="#14344B"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <RadioGroup
@@ -159,34 +141,32 @@
 
                 <RadioButton
                     android:id="@+id/rbAvailable"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:checked="true"
                     android:text="Còn trống" />
 
                 <RadioButton
                     android:id="@+id/rbOccupied"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
                     android:text="Đang thuê" />
 
                 <RadioButton
                     android:id="@+id/rbMaintenance"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
                     android:text="Bảo trì" />
             </RadioGroup>
 
-            <!-- PHẦN 2: THÔNG TIN NGƯỜI THUÊ -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Thông tin người thuê"
-                android:textColor="#148369"
+                android:layout_marginTop="20dp"
+                android:text="Thông tin người thuê (Nếu có)"
+                android:textColor="#14344B"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -194,17 +174,13 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusTopStart="10dp">
+                android:layout_marginTop="10dp"
+                android:hint="Họ và tên người thuê">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtTenantName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Họ và tên người thuê"
                     android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -213,32 +189,61 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusTopStart="10dp">
+                android:hint="Số điện thoại người thuê">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtTenantPhone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Số điện thoại người thuê"
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- NÚT LƯU -->
+            <!-- KHU VỰC HÌNH ẢNH PHÒNG TRỌ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Hình ảnh phòng trọ"
+                android:textColor="#14344B"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddRoomImages"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#E8F6F0"
+                android:text="Thêm ảnh phòng"
+                android:textAllCaps="false"
+                android:textColor="#148369"
+                android:textSize="13sp"
+                app:cornerRadius="10dp"
+                app:icon="@drawable/rh_ic_add"
+                app:iconTint="#148369" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAddImages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveRoom"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="28dp"
+                android:layout_marginBottom="20dp"
                 android:backgroundTint="#148369"
-                android:text="Lưu thông tin"
+                android:text="Lưu thông tin phòng"
                 android:textAllCaps="false"
-                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="14dp" />
 
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

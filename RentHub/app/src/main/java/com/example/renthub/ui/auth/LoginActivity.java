@@ -1,5 +1,8 @@
 package com.example.renthub.ui.auth;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -14,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.renthub.R;
 import com.example.renthub.ui.home.LandlordHomeActivity;
 import com.example.renthub.ui.home.TenantHomeActivity;
+import com.example.renthub.ui.landlord.LandlordMainActivity;
+import com.example.renthub.ui.tenant.TenantMainActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,14 +45,6 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Kiểm tra Auto-login nếu đã đăng nhập trước đó
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            setLoading(true);
-            checkRoleAndNavigate(currentUser.getUid());
-            return;
-        }
-
         initViews();
         setupListeners();
     }
@@ -62,22 +59,23 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // Chuyển sang chọn vai trò để đăng ký
+        // Chuyển sang màn hình chọn vai trò để đăng ký
         tvSignUp.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RoleSelectionActivity.class);
             startActivity(intent);
         });
 
-        // Chuyển sang màn hình quên mật khẩu Gmail
+        // Chuyển sang màn hình quên mật khẩu
         tvForgotPassword.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
         });
 
-        // Ẩn thông báo lỗi khi bắt đầu nhập lại thông tin
+        // Tự động ẩn thông báo lỗi khi người dùng nhập lại thông tin
         TextWatcher clearErrorWatcher = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -87,11 +85,13 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         };
         edtEmail.addTextChangedListener(clearErrorWatcher);
         edtPassword.addTextChangedListener(clearErrorWatcher);
 
+        // Xử lý sự kiện bấm Đăng nhập
         btnLogin.setOnClickListener(v -> handleLogin());
     }
 
@@ -99,6 +99,7 @@ public class LoginActivity extends AppCompatActivity {
         String account = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
 
+        // 1. Kiểm tra rỗng
         if (TextUtils.isEmpty(account) || TextUtils.isEmpty(password)) {
             showLoginError();
             return;
@@ -106,9 +107,11 @@ public class LoginActivity extends AppCompatActivity {
 
         setLoading(true);
 
+        // 2. Kiểm tra nếu nhập email thì xác thực trực tiếp
         if (account.contains("@")) {
             loginWithEmail(account, password);
         } else {
+            // Nếu người dùng nhập số điện thoại -> tìm email tương ứng trong Firestore
             loginWithPhone(account, password);
         }
     }
@@ -155,26 +158,28 @@ public class LoginActivity extends AppCompatActivity {
                         String email = snapshot.getString("email");
                         String phone = snapshot.getString("phone");
 
-                        Intent intent;
-                        // Kiểm tra vai trò Chủ trọ -> Mở LandlordHomeActivity
+                        // Kiểm tra vai trò: Chủ trọ hay Người thuê
                         if (role != null && (role.equalsIgnoreCase("LANDLORD")
                                 || role.equalsIgnoreCase("CHỦ TRỌ")
                                 || role.toLowerCase().contains("chủ"))) {
-                            intent = new Intent(LoginActivity.this, LandlordHomeActivity.class);
+                            // Chuyển sang màn hình giao diện Chủ trọ
+                            Intent intent = new Intent(LoginActivity.this, LandlordHomeActivity.class);
+                            intent.putExtra("FULL_NAME", fullName);
+                            intent.putExtra("EMAIL", email);
+                            intent.putExtra("PHONE", phone);
                             intent.putExtra("ROLE", "LANDLORD");
+                            startActivity(intent);
+                            finish();
                         } else {
-                            intent = new Intent(LoginActivity.this, TenantHomeActivity.class);
+                            // Chuyển sang màn hình giao diện Người thuê trọ
+                            Intent intent = new Intent(LoginActivity.this, TenantHomeActivity.class);
+                            intent.putExtra("FULL_NAME", fullName);
+                            intent.putExtra("EMAIL", email);
+                            intent.putExtra("PHONE", phone);
                             intent.putExtra("ROLE", "TENANT");
+                            startActivity(intent);
+                            finish();
                         }
-
-                        intent.putExtra("FULL_NAME", fullName);
-                        intent.putExtra("EMAIL", email);
-                        intent.putExtra("PHONE", phone);
-
-                        // Xóa stack màn hình Login để nhấn nút Back không bị quay lại
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
                     } else {
                         showLoginError();
                     }
@@ -183,20 +188,16 @@ public class LoginActivity extends AppCompatActivity {
 
     private void showLoginError() {
         setLoading(false);
-        if (tvErrorMessage != null) {
-            tvErrorMessage.setText("Thông tin đăng nhập không chính xác");
-            tvErrorMessage.setVisibility(View.VISIBLE);
-        }
+        tvErrorMessage.setText("Thông tin đăng nhập không chính xác");
+        tvErrorMessage.setVisibility(View.VISIBLE);
     }
 
     private void setLoading(boolean isLoading) {
-        if (btnLogin != null) {
-            btnLogin.setEnabled(!isLoading);
-            if (isLoading) {
-                btnLogin.setText("Đang đăng nhập...");
-            } else {
-                btnLogin.setText("Đăng nhập");
-            }
+        btnLogin.setEnabled(!isLoading);
+        if (isLoading) {
+            btnLogin.setText("Đang đăng nhập...");
+        } else {
+            btnLogin.setText("Đăng nhập");
         }
     }
 }

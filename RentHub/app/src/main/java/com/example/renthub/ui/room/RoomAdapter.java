@@ -25,6 +25,10 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
         void onDelete(Room room);
     }
 
+    public RoomAdapter(List<Room> roomList) {
+        this(roomList, null);
+    }
+
     public RoomAdapter(List<Room> roomList, OnRoomActionListener listener) {
         this.roomList = roomList;
         this.listener = listener;

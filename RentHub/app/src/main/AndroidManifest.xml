@@ -44,6 +44,14 @@
             android:name=".ui.room.LandlordRoomListActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.room.AddEditRoomActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.room.RoomDetailActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.auth.ForgotPasswordActivity"
             android:exported="true" />
 

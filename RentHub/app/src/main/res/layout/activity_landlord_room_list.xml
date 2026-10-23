@@ -11,7 +11,7 @@
     <!-- TOP BAR -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="68dp"
+        android:layout_height="64dp"
         android:background="#FFFFFF"
         android:paddingHorizontal="16dp"
         android:gravity="center_vertical"
@@ -42,7 +42,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddRoom"
             android:layout_width="wrap_content"
-            android:layout_height="44dp"
+            android:layout_height="42dp"
             android:text="Thêm"
             android:textSize="13sp"
             android:textStyle="bold"
@@ -56,43 +56,44 @@
             app:iconPadding="4dp"/>
     </LinearLayout>
 
-    <!-- THỐNG KÊ, TÌM KIẾM, BỘ LỌC -->
+    <!-- THỐNG KÊ, TÌM KIẾM, BỘ LỌC (TỐI ƯU KÍCH THƯỚC) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="18dp"
-        android:paddingTop="18dp"
-        android:paddingBottom="12dp">
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Phòng trọ của tôi"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="#14344B"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="2dp"
             android:text="Quản lý và theo dõi tình trạng phòng trọ"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textColor="#718096"/>
 
-        <!-- SUMMARY -->
+        <!-- SUMMARY (THỐNG KÊ GỌN GÀNG) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="17dp"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
+            <!-- TỔNG PHÒNG -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
-                android:layout_height="98dp"
+                android:layout_height="84dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="15dp"
+                app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="#E3F5ED">
 
@@ -103,10 +104,11 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvTotalRooms"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="04"
-                        android:textSize="25sp"
+                        android:text="00"
+                        android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="#148369"/>
 
@@ -120,14 +122,15 @@
             </com.google.android.material.card.MaterialCardView>
 
             <Space
-                android:layout_width="9dp"
+                android:layout_width="8dp"
                 android:layout_height="1dp"/>
 
+            <!-- ĐANG THUÊ -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
-                android:layout_height="98dp"
+                android:layout_height="84dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="15dp"
+                app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="#EAF1FC">
 
@@ -138,10 +141,11 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvOccupiedRooms"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="01"
-                        android:textSize="25sp"
+                        android:text="00"
+                        android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="#2563A6"/>
 
@@ -155,14 +159,15 @@
             </com.google.android.material.card.MaterialCardView>
 
             <Space
-                android:layout_width="9dp"
+                android:layout_width="8dp"
                 android:layout_height="1dp"/>
 
+            <!-- CÒN TRỐNG -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
-                android:layout_height="98dp"
+                android:layout_height="84dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="15dp"
+                app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="#FFF3DF">
 
@@ -173,10 +178,11 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvAvailableRooms"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="02"
-                        android:textSize="25sp"
+                        android:text="00"
+                        android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="#B7791F"/>
 
@@ -196,7 +202,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             app:hintEnabled="false"
             app:boxBackgroundColor="#FFFFFF"
             app:boxStrokeColor="#D7E3DE"
@@ -214,6 +220,7 @@
                 android:hint="Tìm tên phòng, mã phòng..."
                 android:singleLine="true"
                 android:inputType="text"
+                android:paddingVertical="10dp"
                 android:textSize="14sp"
                 android:textColor="#14344B"
                 android:textColorHint="#9CA3AF"/>
@@ -223,7 +230,7 @@
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="9dp"
+            android:layout_marginTop="8dp"
             android:scrollbars="none">
 
             <LinearLayout
@@ -235,50 +242,50 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFilterAll"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:text="Tất cả"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
                     android:backgroundTint="#148369"
-                    app:cornerRadius="20dp"/>
+                    app:cornerRadius="18dp"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFilterAvailable"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="5dp"
                     android:text="Còn trống"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:textColor="#63737C"
                     android:backgroundTint="#E9EFED"
-                    app:cornerRadius="20dp"/>
+                    app:cornerRadius="18dp"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFilterOccupied"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="5dp"
                     android:text="Đang thuê"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:textColor="#63737C"
                     android:backgroundTint="#E9EFED"
-                    app:cornerRadius="20dp"/>
+                    app:cornerRadius="18dp"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFilterMaintenance"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="5dp"
                     android:text="Bảo trì"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:textColor="#63737C"
                     android:backgroundTint="#E9EFED"
-                    app:cornerRadius="20dp"/>
+                    app:cornerRadius="18dp"/>
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -286,7 +293,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -295,7 +302,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Tất cả phòng"
-                android:textSize="17sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#14344B"/>
 
@@ -303,13 +310,13 @@
                 android:id="@+id/tvRoomCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4 phòng"
+                android:text="0 phòng"
                 android:textSize="12sp"
                 android:textColor="#718096"/>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- RECYCLERVIEW -->
+    <!-- RECYCLERVIEW (ĐÃ THÊM PADDING BOTTOM ĐỂ KHÔNG BỊ CHE BỞI BOTTOM NAV) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvRooms"
         android:layout_width="match_parent"
@@ -317,9 +324,9 @@
         android:layout_weight="1"
         android:paddingHorizontal="18dp"
         android:paddingTop="4dp"
-        android:paddingBottom="14dp"
+        android:paddingBottom="80dp"
         android:clipToPadding="false"
-        android:scrollbars="none"
+        android:scrollbars="vertical"
         tools:listitem="@layout/item_landlord_room"
         tools:itemCount="4"/>
 

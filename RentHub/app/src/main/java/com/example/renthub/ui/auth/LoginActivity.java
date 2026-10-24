@@ -1,8 +1,5 @@
 package com.example.renthub.ui.auth;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -11,17 +8,15 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.renthub.R;
 import com.example.renthub.ui.home.LandlordHomeActivity;
 import com.example.renthub.ui.home.TenantHomeActivity;
-import com.example.renthub.ui.landlord.LandlordMainActivity;
-import com.example.renthub.ui.tenant.TenantMainActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -157,6 +152,19 @@ public class LoginActivity extends AppCompatActivity {
                         String fullName = snapshot.getString("fullName");
                         String email = snapshot.getString("email");
                         String phone = snapshot.getString("phone");
+
+                        // KIỂM TRA THÔNG TIN CƠ BẢN: Nếu chưa có Tên hoặc SĐT -> Yêu cầu cập nhật thông tin trước
+                        if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(phone)) {
+                            Toast.makeText(LoginActivity.this, "Vui lòng hoàn thiện thông tin cá nhân!", Toast.LENGTH_SHORT).show();
+
+                            // Lưu ý: Thay 'EditProfileActivity' bằng tên Activity cập nhật thông tin cá nhân trong dự án của bạn (ví dụ: EditProfileActivity / UpdateProfileActivity)
+                            Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
+                            intent.putExtra("UID", uid);
+                            intent.putExtra("ROLE", role);
+                            startActivity(intent);
+                            finish();
+                            return;
+                        }
 
                         // Kiểm tra vai trò: Chủ trọ hay Người thuê
                         if (role != null && (role.equalsIgnoreCase("LANDLORD")

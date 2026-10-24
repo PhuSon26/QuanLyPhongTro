@@ -17,14 +17,12 @@
         android:padding="14dp"
         android:orientation="vertical">
 
-        <!-- THÔNG TIN PHÒNG -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- ẢNH PHÒNG TRỌ THỰC TẾ/MẶC ĐỊNH -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="88dp"
                 android:layout_height="90dp"
@@ -60,19 +58,31 @@
                     android:id="@+id/tvRoomLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="2dp"
                     android:text="Dãy A • Tầng 1"
                     android:textSize="12sp"
                     android:textColor="#718096"/>
 
                 <TextView
-                    android:id="@+id/tvRoomArea"
+                    android:id="@+id/tvLandlordName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="20 m²"
+                    android:layout_marginTop="2dp"
+                    android:text="Chủ trọ: Le Phu Son"
                     android:textSize="12sp"
-                    android:textColor="#718096"/>
+                    android:textStyle="bold"
+                    android:textColor="#148369"/>
+
+                <!-- THÔNG TIN SỐ NGƯỜI Ở -->
+                <TextView
+                    android:id="@+id/tvOccupancy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Số người ở: 1/2"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563A6"/>
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardRoomStatus"
@@ -103,7 +113,6 @@
             android:layout_marginTop="14dp"
             android:background="#EEF1F0"/>
 
-        <!-- GIÁ THUÊ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -129,7 +138,6 @@
                 android:textColor="#148369"/>
         </LinearLayout>
 
-        <!-- BUTTONS -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -149,9 +157,7 @@
                 android:backgroundTint="#E8F6F0"
                 app:cornerRadius="10dp"/>
 
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="1dp"/>
+            <Space android:layout_width="10dp" android:layout_height="1dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteRoom"

@@ -2,9 +2,12 @@ package com.example.renthub.ui.room;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -39,13 +42,15 @@ public class AddEditRoomActivity extends AppCompatActivity {
     public static final String EXTRA_IS_VIEW_ONLY = "EXTRA_IS_VIEW_ONLY";
 
     private ImageButton btnBack;
-    private TextView tvTitle;
-    private TextInputEditText edtRoomName, edtRoomLocation, edtRoomArea, edtRoomPrice;
+    private TextView tvTitle, tvOccupantCountTitle;
+    private TextInputEditText edtRoomName, edtRoomLocation, edtRoomArea, edtRoomPrice, edtMaxOccupants;
+    private TextInputEditText edtLandlordName, edtLandlordPhone;
     private TextInputEditText edtTenantName, edtTenantPhone;
     private RadioGroup rgStatus;
     private RadioButton rbAvailable, rbOccupied, rbMaintenance;
-    private MaterialButton btnSaveRoom, btnAddRoomImages;
+    private MaterialButton btnSaveRoom, btnAddRoomImages, btnAddOccupant;
     private RecyclerView rvAddImages;
+    private LinearLayout containerOccupants;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -54,14 +59,12 @@ public class AddEditRoomActivity extends AppCompatActivity {
 
     private AddRoomImageAdapter imageAdapter;
     private final List<String> roomImageList = new ArrayList<>();
+    private final List<String> occupantNames = new ArrayList<>();
 
-    // LỰA CHỌN NHIỀU ẢNH TỰ CHỌN TỪ THIẾT BỊ
     private final ActivityResultLauncher<String> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), uris -> {
                 if (uris != null && !uris.isEmpty()) {
-                    for (Uri uri : uris) {
-                        roomImageList.add(uri.toString());
-                    }
+                    for (Uri uri : uris) roomImageList.add(uri.toString());
                     if (imageAdapter != null) imageAdapter.notifyDataSetChanged();
                 }
             });
@@ -75,18 +78,26 @@ public class AddEditRoomActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         initViews();
+        lockLandlordInfoFields();
         setupImageRecyclerView();
         checkIntentData();
+        loadLandlordProfileInfo();
         setupListeners();
+        updateOccupantUI();
     }
 
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         tvTitle = findViewById(R.id.tvTitle);
+        tvOccupantCountTitle = findViewById(R.id.tvOccupantCountTitle);
         edtRoomName = findViewById(R.id.edtRoomName);
         edtRoomLocation = findViewById(R.id.edtRoomLocation);
         edtRoomArea = findViewById(R.id.edtRoomArea);
         edtRoomPrice = findViewById(R.id.edtRoomPrice);
+        edtMaxOccupants = findViewById(R.id.edtMaxOccupants);
+
+        edtLandlordName = findViewById(R.id.edtLandlordName);
+        edtLandlordPhone = findViewById(R.id.edtLandlordPhone);
 
         edtTenantName = findViewById(R.id.edtTenantName);
         edtTenantPhone = findViewById(R.id.edtTenantPhone);
@@ -98,7 +109,14 @@ public class AddEditRoomActivity extends AppCompatActivity {
         btnSaveRoom = findViewById(R.id.btnSaveRoom);
 
         btnAddRoomImages = findViewById(R.id.btnAddRoomImages);
+        btnAddOccupant = findViewById(R.id.btnAddOccupant);
         rvAddImages = findViewById(R.id.rvAddImages);
+        containerOccupants = findViewById(R.id.containerOccupants);
+    }
+
+    private void lockLandlordInfoFields() {
+        if (edtLandlordName != null) edtLandlordName.setEnabled(false);
+        if (edtLandlordPhone != null) edtLandlordPhone.setEnabled(false);
     }
 
     private void setupImageRecyclerView() {
@@ -128,20 +146,25 @@ public class AddEditRoomActivity extends AppCompatActivity {
                     String price = currentRoom.getPrice() != null ? currentRoom.getPrice().replace("đ/tháng", "").replace(".", "").replace(",", "").trim() : "";
                     edtRoomArea.setText(area);
                     edtRoomPrice.setText(price);
+                    edtMaxOccupants.setText(String.valueOf(currentRoom.getMaxOccupants()));
 
                     edtTenantName.setText(currentRoom.getTenantName() != null ? currentRoom.getTenantName() : "");
                     edtTenantPhone.setText(currentRoom.getTenantPhone() != null ? currentRoom.getTenantPhone() : "");
 
+                    if (currentRoom.getOccupants() != null) {
+                        occupantNames.clear();
+                        occupantNames.addAll(currentRoom.getOccupants());
+                    }
+
                     String status = currentRoom.getStatus() != null ? currentRoom.getStatus() : "";
-                    if (status.equalsIgnoreCase("Đang thuê") || status.equalsIgnoreCase("OCCUPIED")) {
+                    if (status.contains("thuê") || status.contains("OCCUPIED") || status.contains("Đã đủ")) {
                         rbOccupied.setChecked(true);
-                    } else if (status.equalsIgnoreCase("Bảo trì") || status.equalsIgnoreCase("MAINTENANCE")) {
+                    } else if (status.contains("trì") || status.contains("MAINTENANCE")) {
                         rbMaintenance.setChecked(true);
                     } else {
                         rbAvailable.setChecked(true);
                     }
 
-                    // Tải danh sách ảnh phòng nếu có sẵn
                     if (currentRoom.getImages() != null && !currentRoom.getImages().isEmpty()) {
                         roomImageList.clear();
                         roomImageList.addAll(currentRoom.getImages());
@@ -155,7 +178,23 @@ public class AddEditRoomActivity extends AppCompatActivity {
             tvTitle.setText("Chi tiết phòng trọ");
             btnSaveRoom.setVisibility(View.GONE);
             btnAddRoomImages.setVisibility(View.GONE);
+            btnAddOccupant.setVisibility(View.GONE);
             disableEditing();
+        }
+    }
+
+    private void loadLandlordProfileInfo() {
+        if (mAuth.getCurrentUser() != null) {
+            String uid = mAuth.getCurrentUser().getUid();
+            db.collection("users").document(uid).get().addOnSuccessListener(snapshot -> {
+                if (snapshot.exists()) {
+                    String name = snapshot.getString("fullName");
+                    String phone = snapshot.getString("phone");
+
+                    if (edtLandlordName != null) edtLandlordName.setText(name != null ? name : "Chủ trọ");
+                    if (edtLandlordPhone != null) edtLandlordPhone.setText(phone != null ? phone : "");
+                }
+            });
         }
     }
 
@@ -164,6 +203,7 @@ public class AddEditRoomActivity extends AppCompatActivity {
         edtRoomLocation.setEnabled(false);
         edtRoomArea.setEnabled(false);
         edtRoomPrice.setEnabled(false);
+        edtMaxOccupants.setEnabled(false);
         edtTenantName.setEnabled(false);
         edtTenantPhone.setEnabled(false);
 
@@ -176,6 +216,117 @@ public class AddEditRoomActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
         btnAddRoomImages.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
         btnSaveRoom.setOnClickListener(v -> saveRoomToFirestore());
+
+        btnAddOccupant.setOnClickListener(v -> {
+            int max = getMaxOccupants();
+            int current = getCurrentTotalOccupants();
+
+            if (current >= max) {
+                Toast.makeText(this, "Phòng đã đạt sức chứa tối đa (" + max + " người)!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            occupantNames.add("");
+            renderOccupantItem(occupantNames.size() - 1, "");
+            updateOccupantUI();
+        });
+
+        edtTenantName.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { updateOccupantUI(); }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        edtMaxOccupants.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { updateOccupantUI(); }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private int getMaxOccupants() {
+        try {
+            String maxStr = edtMaxOccupants.getText().toString().trim();
+            return Math.max(1, Integer.parseInt(maxStr));
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+
+    private int getCurrentTotalOccupants() {
+        int count = 0;
+        String tenantName = edtTenantName.getText().toString().trim();
+        if (!tenantName.isEmpty()) count++;
+        count += occupantNames.size();
+        return count;
+    }
+
+    private void updateOccupantUI() {
+        containerOccupants.removeAllViews();
+        for (int i = 0; i < occupantNames.size(); i++) {
+            renderOccupantItem(i, occupantNames.get(i));
+        }
+
+        int max = getMaxOccupants();
+        int totalCurrent = getCurrentTotalOccupants();
+        int coOccupantCount = occupantNames.size();
+
+        tvOccupantCountTitle.setText("Người ở cùng (" + coOccupantCount + " người) • Tổng trong phòng: " + totalCurrent + "/" + max);
+
+        if (totalCurrent >= max) {
+            btnAddOccupant.setEnabled(false);
+            btnAddOccupant.setAlpha(0.5f);
+        } else {
+            btnAddOccupant.setEnabled(true);
+            btnAddOccupant.setAlpha(1.0f);
+        }
+    }
+
+    private void renderOccupantItem(int index, String initialValue) {
+        LinearLayout itemLayout = new LinearLayout(this);
+        itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+        itemLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        itemLayout.setPadding(0, 8, 0, 8);
+
+        EditText edtOccupant = new EditText(this);
+        LinearLayout.LayoutParams edtParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        edtOccupant.setLayoutParams(edtParams);
+        edtOccupant.setHint("Họ tên người ở thứ " + (index + 2));
+        edtOccupant.setText(initialValue);
+        edtOccupant.setTextSize(14);
+        if (isViewOnly) edtOccupant.setEnabled(false);
+
+        edtOccupant.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (index < occupantNames.size()) {
+                    occupantNames.set(index, s.toString().trim());
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        itemLayout.addView(edtOccupant);
+
+        if (!isViewOnly) {
+            ImageButton btnDelete = new ImageButton(this);
+            btnDelete.setLayoutParams(new LinearLayout.LayoutParams(80, 80));
+            btnDelete.setImageResource(R.drawable.rh_ic_add);
+            btnDelete.setRotation(45f);
+            btnDelete.setBackground(null);
+
+            btnDelete.setOnClickListener(v -> {
+                if (index < occupantNames.size()) {
+                    occupantNames.remove(index);
+                    updateOccupantUI();
+                }
+            });
+
+            itemLayout.addView(btnDelete);
+        }
+
+        containerOccupants.addView(itemLayout);
     }
 
     private void saveRoomToFirestore() {
@@ -183,8 +334,11 @@ public class AddEditRoomActivity extends AppCompatActivity {
         String location = edtRoomLocation.getText().toString().trim();
         String area = edtRoomArea.getText().toString().trim();
         String price = edtRoomPrice.getText().toString().trim();
+        String landlordName = edtLandlordName.getText().toString().trim();
+        String landlordPhone = edtLandlordPhone.getText().toString().trim();
         String tenantName = edtTenantName.getText().toString().trim();
         String tenantPhone = edtTenantPhone.getText().toString().trim();
+        int maxOccupants = getMaxOccupants();
 
         if (TextUtils.isEmpty(name)) {
             edtRoomName.setError("Vui lòng nhập tên phòng");
@@ -196,12 +350,25 @@ public class AddEditRoomActivity extends AppCompatActivity {
             return;
         }
 
-        String status = "Còn trống";
-        int checkedId = rgStatus.getCheckedRadioButtonId();
-        if (checkedId == R.id.rbOccupied) {
-            status = "Đang thuê";
-        } else if (checkedId == R.id.rbMaintenance) {
-            status = "Bảo trì";
+        int currentTotal = getCurrentTotalOccupants();
+
+        if (currentTotal > maxOccupants) {
+            Toast.makeText(this, "Tổng số người (" + currentTotal + " người) vượt quá sức chứa tối đa (" + maxOccupants + " người)!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String status;
+        if (currentTotal >= maxOccupants) {
+            status = "Đã đủ người";
+        } else {
+            int checkedId = rgStatus.getCheckedRadioButtonId();
+            if (checkedId == R.id.rbOccupied) {
+                status = "Đang thuê";
+            } else if (checkedId == R.id.rbMaintenance) {
+                status = "Bảo trì";
+            } else {
+                status = "Còn trống";
+            }
         }
 
         String landlordId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
@@ -212,7 +379,13 @@ public class AddEditRoomActivity extends AppCompatActivity {
         roomData.put("area", area);
         roomData.put("price", price);
         roomData.put("status", status);
+        roomData.put("maxOccupants", maxOccupants);
+        roomData.put("occupants", occupantNames);
+
         roomData.put("landlordId", landlordId);
+        roomData.put("landlordName", landlordName.isEmpty() ? "Chủ trọ" : landlordName);
+        roomData.put("landlordPhone", landlordPhone);
+
         roomData.put("tenantName", tenantName);
         roomData.put("tenantPhone", tenantPhone);
 
@@ -288,7 +461,7 @@ public class AddEditRoomActivity extends AppCompatActivity {
             Glide.with(holder.itemView.getContext())
                     .load(images.get(position))
                     .centerCrop()
-                    .into(holder.imageView);
+                    .into(holder.itemView.getContext() != null ? holder.imageView : holder.imageView);
 
             holder.itemView.setOnLongClickListener(v -> {
                 if (listener != null) listener.onRemove(holder.getAdapterPosition());

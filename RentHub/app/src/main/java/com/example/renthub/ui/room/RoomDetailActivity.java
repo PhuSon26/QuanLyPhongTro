@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,13 +29,15 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_ROOM = "EXTRA_ROOM";
 
-    private ImageButton btnBack, btnCallTenant;
+    private ImageButton btnBack, btnCallTenant, btnCallLandlord;
     private MaterialButton btnEditRoomBottom;
-    private TextView tvDetailRoomName, tvDetailLocation, tvDetailStatus, tvDetailPrice, tvDetailArea;
-    private TextView tvDetailTenantName, tvDetailTenantPhone, tvImageCounter;
+    private TextView tvDetailRoomName, tvDetailLocation, tvDetailStatus, tvDetailPrice, tvDetailArea, tvDetailOccupancy;
+    private TextView tvDetailLandlordName, tvDetailLandlordPhone;
+    private TextView tvDetailTenantName, tvDetailTenantPhone, tvImageCounter, tvOccupantsTitle;
     private MaterialCardView cardStatusBadge;
     private ViewPager2 vpRoomImages;
     private FrameLayout flImageContainer;
+    private LinearLayout containerDetailOccupants;
 
     private Room currentRoom;
 
@@ -52,12 +55,17 @@ public class RoomDetailActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnEditRoomBottom = findViewById(R.id.btnEditRoomBottom);
         btnCallTenant = findViewById(R.id.btnCallTenant);
+        btnCallLandlord = findViewById(R.id.btnCallLandlord);
 
         tvDetailRoomName = findViewById(R.id.tvDetailRoomName);
         tvDetailLocation = findViewById(R.id.tvDetailLocation);
         tvDetailStatus = findViewById(R.id.tvDetailStatus);
         tvDetailPrice = findViewById(R.id.tvDetailPrice);
         tvDetailArea = findViewById(R.id.tvDetailArea);
+        tvDetailOccupancy = findViewById(R.id.tvDetailOccupancy);
+
+        tvDetailLandlordName = findViewById(R.id.tvDetailLandlordName);
+        tvDetailLandlordPhone = findViewById(R.id.tvDetailLandlordPhone);
 
         tvDetailTenantName = findViewById(R.id.tvDetailTenantName);
         tvDetailTenantPhone = findViewById(R.id.tvDetailTenantPhone);
@@ -66,6 +74,9 @@ public class RoomDetailActivity extends AppCompatActivity {
 
         vpRoomImages = findViewById(R.id.vpRoomImages);
         flImageContainer = findViewById(R.id.flImageContainer);
+
+        tvOccupantsTitle = findViewById(R.id.tvOccupantsTitle);
+        containerDetailOccupants = findViewById(R.id.containerDetailOccupants);
     }
 
     private void getIntentData() {
@@ -80,8 +91,6 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private void setupImageSlider() {
         List<String> imageList = currentRoom.getImages();
-
-        // CHỈ HIỂN THỊ SLIDER KHI PHÒNG CÓ ẢNH
         if (imageList != null && !imageList.isEmpty()) {
             flImageContainer.setVisibility(View.VISIBLE);
             ImageSliderAdapter adapter = new ImageSliderAdapter(imageList);
@@ -113,10 +122,20 @@ public class RoomDetailActivity extends AppCompatActivity {
         if (!price.contains("đ")) price += "đ/tháng";
         tvDetailPrice.setText(price);
 
+        // HIỂN THỊ TỈ LỆ SỐ NGƯỜI Ở
+        int currentCount = currentRoom.getCurrentOccupantCount();
+        int maxCount = currentRoom.getMaxOccupants();
+        tvDetailOccupancy.setText(currentCount + "/" + maxCount + " người");
+
+        // HIỂN THỊ TRẠNG THÁI PHÒNG (BAO GỒM NẾU ĐÃ ĐỦ NGƯỜI)
         String status = currentRoom.getStatus() != null ? currentRoom.getStatus() : "Còn trống";
         String statusLower = status.toLowerCase();
 
-        if (statusLower.contains("thuê") || statusLower.contains("occupied")) {
+        if (statusLower.contains("đủ") || currentRoom.isFull()) {
+            tvDetailStatus.setText("Đã đủ người");
+            tvDetailStatus.setTextColor(Color.parseColor("#C74444"));
+            cardStatusBadge.setCardBackgroundColor(Color.parseColor("#FCECEC"));
+        } else if (statusLower.contains("thuê") || statusLower.contains("occupied")) {
             tvDetailStatus.setText("Đang thuê");
             tvDetailStatus.setTextColor(Color.parseColor("#2563A6"));
             cardStatusBadge.setCardBackgroundColor(Color.parseColor("#EAF1FC"));
@@ -130,6 +149,20 @@ public class RoomDetailActivity extends AppCompatActivity {
             cardStatusBadge.setCardBackgroundColor(Color.parseColor("#E3F5ED"));
         }
 
+        // THÔNG TIN CHỦ TRỌ
+        if (currentRoom.getLandlordName() != null && !currentRoom.getLandlordName().trim().isEmpty()) {
+            tvDetailLandlordName.setText(currentRoom.getLandlordName());
+        } else {
+            tvDetailLandlordName.setText("Chủ trọ");
+        }
+
+        if (currentRoom.getLandlordPhone() != null && !currentRoom.getLandlordPhone().trim().isEmpty()) {
+            tvDetailLandlordPhone.setText(currentRoom.getLandlordPhone());
+        } else {
+            tvDetailLandlordPhone.setText("---");
+        }
+
+        // THÔNG TIN NGƯỜI THUÊ CHÍNH
         if (currentRoom.getTenantName() != null && !currentRoom.getTenantName().trim().isEmpty()) {
             tvDetailTenantName.setText(currentRoom.getTenantName());
         } else {
@@ -141,11 +174,46 @@ public class RoomDetailActivity extends AppCompatActivity {
         } else {
             tvDetailTenantPhone.setText("---");
         }
+
+        // HIỂN THỊ DANH SÁCH NGƯỜI Ở CÙNG
+        if (containerDetailOccupants != null && tvOccupantsTitle != null) {
+            containerDetailOccupants.removeAllViews();
+            List<String> occupants = currentRoom.getOccupants();
+
+            if (occupants != null && !occupants.isEmpty()) {
+                tvOccupantsTitle.setText("Người ở cùng (" + occupants.size() + " người)");
+                for (int i = 0; i < occupants.size(); i++) {
+                    TextView tvName = new TextView(this);
+                    tvName.setText((i + 1) + ". " + occupants.get(i));
+                    tvName.setTextSize(14);
+                    tvName.setTextColor(Color.parseColor("#14344B"));
+                    tvName.setPadding(0, 8, 0, 8);
+                    containerDetailOccupants.addView(tvName);
+                }
+            } else {
+                tvOccupantsTitle.setText("Người ở cùng (0 người)");
+                TextView tvEmpty = new TextView(this);
+                tvEmpty.setText("Chưa có người ở cùng");
+                tvEmpty.setTextSize(14);
+                tvEmpty.setTextColor(Color.parseColor("#718096"));
+                containerDetailOccupants.addView(tvEmpty);
+            }
+        }
     }
 
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
         btnEditRoomBottom.setOnClickListener(v -> openEditScreen());
+
+        btnCallLandlord.setOnClickListener(v -> {
+            if (currentRoom != null && currentRoom.getLandlordPhone() != null && !currentRoom.getLandlordPhone().trim().isEmpty()) {
+                Intent callIntent = new Intent(Intent.ACTION_DIAL);
+                callIntent.setData(Uri.parse("tel:" + currentRoom.getLandlordPhone()));
+                startActivity(callIntent);
+            } else {
+                Toast.makeText(this, "Chưa có số điện thoại chủ trọ", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         btnCallTenant.setOnClickListener(v -> {
             if (currentRoom != null && currentRoom.getTenantPhone() != null && !currentRoom.getTenantPhone().trim().isEmpty()) {

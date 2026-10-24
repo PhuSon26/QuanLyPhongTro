@@ -16,6 +16,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.auth.EditProfileActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.auth.RoleSelectionActivity"
             android:exported="true" />
 

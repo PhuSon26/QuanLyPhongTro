@@ -13,7 +13,14 @@ public class Room implements Serializable {
     private String status;
     private String tenantName;
     private String tenantPhone;
+
     private String landlordId;
+    private String landlordName;
+    private String landlordPhone;
+
+    // THÔNG TIN SỐ NGƯỜI Ở
+    private int maxOccupants = 1; // Mặc định tối đa 1 người
+    private List<String> occupants = new ArrayList<>(); // Danh sách người ở cùng (Họ tên)
 
     private String imageUrl;
     private List<String> images;
@@ -47,19 +54,48 @@ public class Room implements Serializable {
     public String getLandlordId() { return landlordId; }
     public void setLandlordId(String landlordId) { this.landlordId = landlordId; }
 
+    public String getLandlordName() { return landlordName; }
+    public void setLandlordName(String landlordName) { this.landlordName = landlordName; }
+
+    public String getLandlordPhone() { return landlordPhone; }
+    public void setLandlordPhone(String landlordPhone) { this.landlordPhone = landlordPhone; }
+
+    public int getMaxOccupants() { return maxOccupants <= 0 ? 1 : maxOccupants; }
+    public void setMaxOccupants(int maxOccupants) { this.maxOccupants = maxOccupants; }
+
+    public List<String> getOccupants() {
+        if (occupants == null) occupants = new ArrayList<>();
+        return occupants;
+    }
+    public void setOccupants(List<String> occupants) { this.occupants = occupants; }
+
+    // TÍNH TỔNG SỐ NGƯỜI ĐANG Ở (NGƯỜI THUÊ CHÍNH + NGƯỜI Ở CÙNG)
+    public int getCurrentOccupantCount() {
+        int count = 0;
+        if (tenantName != null && !tenantName.trim().isEmpty()) {
+            count++;
+        }
+        if (occupants != null) {
+            count += occupants.size();
+        }
+        return count;
+    }
+
+    public boolean isFull() {
+        return getCurrentOccupantCount() >= getMaxOccupants();
+    }
+
     public String getImageUrl() {
         if (imageUrl == null || imageUrl.trim().isEmpty()) {
             if (images != null && !images.isEmpty()) return images.get(0);
-            return null; // Không gán ảnh giả
+            return null;
         }
         return imageUrl;
     }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public List<String> getImages() {
-        if (images == null) {
-            return new ArrayList<>(); // Trả về danh sách rỗng nếu chưa thêm ảnh
-        }
+        if (images == null) return new ArrayList<>();
         return images;
     }
 

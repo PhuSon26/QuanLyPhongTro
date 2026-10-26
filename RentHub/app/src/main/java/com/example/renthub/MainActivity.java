@@ -15,7 +15,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         // Tự động mở màn hình Chọn vai trò (Đăng ký)
-        startActivity(new android.content.Intent(this, com.example.renthub.ui.auth.RoleSelectionActivity.class));
-        finish();
+        startActivity(new android.content.Intent(this, com.example.renthub.ui.auth.LoginActivity.class));
     }
 }

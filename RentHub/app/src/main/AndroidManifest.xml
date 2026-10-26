@@ -14,27 +14,57 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.auth.EditProfileActivity"
+            android:exported="false" />
+
         <activity
             android:name=".ui.auth.RoleSelectionActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.auth.RegisterActivity"
+            android:exported="true" />
+
+        <!-- Chuyển intent-filter sang LoginActivity để màn hình này chạy lên đầu tiên -->
+        <activity
+            android:name=".ui.auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.auth.RegisterActivity"
-            android:exported="true" />
+            android:name=".ui.home.LandlordHomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.home.TenantHomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.room.LandlordRoomListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.room.AddEditRoomActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.room.RoomDetailActivity"
+            android:exported="false" />
+
         <activity
             android:name=".ui.auth.ForgotPasswordActivity"
             android:exported="true" />
-        <activity
-            android:name=".ui.auth.OtpVerificationActivity"
-            android:exported="true" />
-        <activity
-            android:name=".ui.auth.ResetPasswordActivity"
-            android:exported="true" />
-    </application>
 
+        <activity
+            android:name=".ui.landlord.LandlordMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.tenant.TenantMainActivity"
+            android:exported="false" />
+    </application>
 </manifest>

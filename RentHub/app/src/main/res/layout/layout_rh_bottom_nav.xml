@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="78dp"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:paddingHorizontal="5dp"
+    android:background="#FFFFFF"
+    android:elevation="6dp">
+
+    <!-- 1. PHÒNG TRỌ -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavRooms"
+        android:layout_width="0dp"
+        android:layout_height="66dp"
+        android:layout_weight="1"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:layout_marginHorizontal="1dp"
+        android:padding="1dp"
+        android:text="Phòng trọ"
+        android:textSize="10sp"
+        android:textAllCaps="false"
+        android:textColor="#148369"
+        android:backgroundTint="#E7F5EF"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/rh_ic_room"
+        app:iconGravity="textTop"
+        app:iconSize="23dp"
+        app:iconPadding="3dp"
+        app:iconTint="#148369"/>
+
+    <!-- 2. HÓA ĐƠN -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavBills"
+        android:layout_width="0dp"
+        android:layout_height="66dp"
+        android:layout_weight="1"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:layout_marginHorizontal="1dp"
+        android:padding="1dp"
+        android:text="Hóa đơn"
+        android:textSize="10sp"
+        android:textAllCaps="false"
+        android:textColor="#7D8990"
+        android:backgroundTint="#FFFFFF"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/rh_ic_bill"
+        app:iconGravity="textTop"
+        app:iconSize="23dp"
+        app:iconPadding="3dp"
+        app:iconTint="#7D8990"/>
+
+    <!-- 3. SỰ CỐ -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavIssues"
+        android:layout_width="0dp"
+        android:layout_height="66dp"
+        android:layout_weight="1"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:layout_marginHorizontal="1dp"
+        android:padding="1dp"
+        android:text="Sự cố"
+        android:textSize="10sp"
+        android:textAllCaps="false"
+        android:textColor="#7D8990"
+        android:backgroundTint="#FFFFFF"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/rh_ic_issue"
+        app:iconGravity="textTop"
+        app:iconSize="23dp"
+        app:iconPadding="3dp"
+        app:iconTint="#7D8990"/>
+
+    <!-- 4. BẢNG TIN -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavFeed"
+        android:layout_width="0dp"
+        android:layout_height="66dp"
+        android:layout_weight="1"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:layout_marginHorizontal="1dp"
+        android:padding="1dp"
+        android:text="Bảng tin"
+        android:textSize="10sp"
+        android:textAllCaps="false"
+        android:textColor="#7D8990"
+        android:backgroundTint="#FFFFFF"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/rh_ic_feed"
+        app:iconGravity="textTop"
+        app:iconSize="23dp"
+        app:iconPadding="3dp"
+        app:iconTint="#7D8990"/>
+
+    <!-- 5. CÀI ĐẶT -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavSettings"
+        android:layout_width="0dp"
+        android:layout_height="66dp"
+        android:layout_weight="1"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:layout_marginHorizontal="1dp"
+        android:padding="1dp"
+        android:text="Cài đặt"
+        android:textSize="10sp"
+        android:textAllCaps="false"
+        android:textColor="#7D8990"
+        android:backgroundTint="#FFFFFF"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/rh_ic_settings"
+        app:iconGravity="textTop"
+        app:iconSize="23dp"
+        app:iconPadding="3dp"
+        app:iconTint="#7D8990"/>
+
+</LinearLayout>

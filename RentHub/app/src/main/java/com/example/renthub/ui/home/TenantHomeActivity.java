@@ -153,7 +153,8 @@ public class TenantHomeActivity extends AppCompatActivity {
     private void setupRoomRecyclerView() {
         if (recyclerViewAvailableRooms != null) {
             recyclerViewAvailableRooms.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-            roomAdapter = new RoomAdapter(availableRoomList, new RoomAdapter.OnRoomActionListener() {
+            // isLandlord = false để người thuê không nhìn thấy nút Xóa phòng
+            roomAdapter = new RoomAdapter(availableRoomList, false, new RoomAdapter.OnRoomActionListener() {
                 @Override
                 public void onView(Room room) {
                     Intent intent = new Intent(TenantHomeActivity.this, RoomDetailActivity.class);
@@ -191,17 +192,12 @@ public class TenantHomeActivity extends AppCompatActivity {
             cardRecentRoom1.setOnClickListener(openMyRoomListener);
         }
 
-        // Bắt sự kiện menu bottom nav
+        // Bắt sự kiện menu bottom nav: Chuyển sang màn hình Cài đặt & Tài khoản
         View btnNavSettings = findViewById(R.id.btnNavSettings);
         if (btnNavSettings != null) {
             btnNavSettings.setOnClickListener(v -> {
-                FirebaseUser user = auth.getCurrentUser();
-                if (user != null) {
-                    Intent intent = new Intent(TenantHomeActivity.this, EditProfileActivity.class);
-                    intent.putExtra("UID", user.getUid());
-                    intent.putExtra("ROLE", "TENANT");
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.settings.SettingsActivity.class);
+                startActivity(intent);
             });
         }
     }
@@ -212,18 +208,24 @@ public class TenantHomeActivity extends AppCompatActivity {
 
         String currentUserId = currentUser.getUid();
 
-        // 1. Tìm phòng theo tenantId
+        // 1. Tìm phòng theo tenantId và cập nhật chính xác số lượng phòng đã thuê
         db.collection("rooms")
                 .whereEqualTo("tenantId", currentUserId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int rentedCount = queryDocumentSnapshots.size();
+                    setText(R.id.tvStat1, String.format(java.util.Locale.getDefault(), "%02d", rentedCount));
+
                     if (!queryDocumentSnapshots.isEmpty()) {
                         DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
                         myRentedRoom = doc.toObject(Room.class);
                         if (myRentedRoom != null) {
                             myRentedRoom.setId(doc.getId());
 
-                            setText(R.id.tvStat1, "01");
+                            setText(R.id.tvRoomSectionTitle, "Phòng đang thuê của tôi (" + rentedCount + " phòng)");
+                            if (cardRecentRoom1 != null) {
+                                cardRecentRoom1.setVisibility(View.VISIBLE);
+                            }
                             setText(R.id.tvRecentRoom1, myRentedRoom.getName());
                             setText(R.id.tvRecentRoomDesc1, (myRentedRoom.getArea() != null ? myRentedRoom.getArea() : "") +
                                     " • " + (myRentedRoom.getPrice() != null ? myRentedRoom.getPrice() : "") + "đ/tháng");
@@ -236,14 +238,9 @@ public class TenantHomeActivity extends AppCompatActivity {
                         }
                     } else {
                         myRentedRoom = null;
-                        setText(R.id.tvStat1, "00");
-                        setText(R.id.tvRecentRoom1, "Chưa thuê phòng nào");
-                        setText(R.id.tvRecentRoomDesc1, "Nhấn vào phòng bên dưới để đăng ký thuê");
-                        setText(R.id.tvRecentStatus1, "Trống");
-
-                        TextView tvStatus = findViewById(R.id.tvRecentStatus1);
-                        if (tvStatus != null) {
-                            tvStatus.setTextColor(Color.parseColor("#718096"));
+                        setText(R.id.tvRoomSectionTitle, "Phòng đang thuê");
+                        if (cardRecentRoom1 != null) {
+                            cardRecentRoom1.setVisibility(View.GONE);
                         }
                     }
                 })

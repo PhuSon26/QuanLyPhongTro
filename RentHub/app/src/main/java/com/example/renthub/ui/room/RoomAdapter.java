@@ -21,6 +21,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
 
     private List<Room> roomList;
     private OnRoomActionListener listener;
+    private boolean isLandlord = true;
 
     public interface OnRoomActionListener {
         void onView(Room room);
@@ -28,7 +29,12 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
     }
 
     public RoomAdapter(List<Room> roomList, OnRoomActionListener listener) {
+        this(roomList, true, listener);
+    }
+
+    public RoomAdapter(List<Room> roomList, boolean isLandlord, OnRoomActionListener listener) {
         this.roomList = roomList;
+        this.isLandlord = isLandlord;
         this.listener = listener;
     }
 
@@ -99,9 +105,14 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             if (listener != null) listener.onView(room);
         });
 
-        holder.btnDeleteRoom.setOnClickListener(v -> {
-            if (listener != null) listener.onDelete(room);
-        });
+        if (isLandlord) {
+            holder.btnDeleteRoom.setVisibility(View.VISIBLE);
+            holder.btnDeleteRoom.setOnClickListener(v -> {
+                if (listener != null) listener.onDelete(room);
+            });
+        } else {
+            holder.btnDeleteRoom.setVisibility(View.GONE);
+        }
     }
 
     @Override

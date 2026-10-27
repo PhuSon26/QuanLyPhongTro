@@ -103,6 +103,14 @@ public class LandlordHomeActivity extends AppCompatActivity {
                     Toast.makeText(LandlordHomeActivity.this, "Không có thông báo mới", Toast.LENGTH_SHORT).show()
             );
         }
+
+        View btnNavSettings = findViewById(R.id.btnNavSettings);
+        if (btnNavSettings != null) {
+            btnNavSettings.setOnClickListener(v -> {
+                Intent intent = new Intent(LandlordHomeActivity.this, com.example.renthub.ui.settings.SettingsActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void loadDashboardData() {

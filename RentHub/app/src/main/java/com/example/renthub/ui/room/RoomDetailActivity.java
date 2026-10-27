@@ -22,6 +22,9 @@ import com.bumptech.glide.Glide;
 import com.example.renthub.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -30,7 +33,7 @@ public class RoomDetailActivity extends AppCompatActivity {
     public static final String EXTRA_ROOM = "EXTRA_ROOM";
 
     private ImageButton btnBack, btnCallTenant, btnCallLandlord;
-    private MaterialButton btnEditRoomBottom;
+    private MaterialButton btnEditRoomBottom, btnRentRoomBottom;
     private TextView tvDetailRoomName, tvDetailLocation, tvDetailStatus, tvDetailPrice, tvDetailArea, tvDetailOccupancy;
     private TextView tvDetailLandlordName, tvDetailLandlordPhone;
     private TextView tvDetailTenantName, tvDetailTenantPhone, tvImageCounter, tvOccupantsTitle;
@@ -54,6 +57,7 @@ public class RoomDetailActivity extends AppCompatActivity {
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         btnEditRoomBottom = findViewById(R.id.btnEditRoomBottom);
+        btnRentRoomBottom = findViewById(R.id.btnRentRoomBottom);
         btnCallTenant = findViewById(R.id.btnCallTenant);
         btnCallLandlord = findViewById(R.id.btnCallLandlord);
 
@@ -85,6 +89,7 @@ public class RoomDetailActivity extends AppCompatActivity {
             if (currentRoom != null) {
                 displayRoomData();
                 setupImageSlider();
+                checkUserRoleAndConfigureButtons();
             }
         }
     }
@@ -205,6 +210,10 @@ public class RoomDetailActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
         btnEditRoomBottom.setOnClickListener(v -> openEditScreen());
 
+        if (btnRentRoomBottom != null) {
+            btnRentRoomBottom.setOnClickListener(v -> openRentBottomSheet());
+        }
+
         btnCallLandlord.setOnClickListener(v -> {
             if (currentRoom != null && currentRoom.getLandlordPhone() != null && !currentRoom.getLandlordPhone().trim().isEmpty()) {
                 Intent callIntent = new Intent(Intent.ACTION_DIAL);
@@ -224,6 +233,85 @@ public class RoomDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Chưa có số điện thoại người thuê", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void openRentBottomSheet() {
+        if (currentRoom == null) return;
+        RentRoomBottomSheetDialog dialog = RentRoomBottomSheetDialog.newInstance(currentRoom);
+        dialog.setOnRentSuccessListener(updatedRoom -> {
+            currentRoom = updatedRoom;
+            displayRoomData();
+            checkUserRoleAndConfigureButtons();
+        });
+        dialog.show(getSupportFragmentManager(), "RentRoomBottomSheetDialog");
+    }
+
+    private void checkUserRoleAndConfigureButtons() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            btnEditRoomBottom.setVisibility(View.GONE);
+            btnRentRoomBottom.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String role = doc.getString("role");
+                    boolean isLandlord = role != null && (role.equalsIgnoreCase("LANDLORD")
+                            || role.equalsIgnoreCase("CHỦ TRỌ")
+                            || role.toLowerCase().contains("chủ"));
+
+                    String status = currentRoom != null && currentRoom.getStatus() != null ? currentRoom.getStatus().toLowerCase() : "";
+                    boolean isRented = status.contains("thuê") || status.contains("occupied") || (currentRoom != null && currentRoom.isFull());
+
+                    if (isLandlord) {
+                        btnEditRoomBottom.setVisibility(View.VISIBLE);
+                        btnRentRoomBottom.setVisibility(View.GONE);
+                    } else {
+                        btnEditRoomBottom.setVisibility(View.GONE);
+                        if (!isRented) {
+                            checkPendingRentalRequest(user.getUid());
+                        } else {
+                            btnRentRoomBottom.setVisibility(View.GONE);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    btnEditRoomBottom.setVisibility(View.GONE);
+                    btnRentRoomBottom.setVisibility(View.VISIBLE);
+                });
+    }
+
+    private void checkPendingRentalRequest(String tenantUid) {
+        if (currentRoom == null || currentRoom.getId() == null) {
+            btnRentRoomBottom.setText("Gửi yêu cầu thuê phòng");
+            btnRentRoomBottom.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        FirebaseFirestore.getInstance().collection("rental_requests")
+                .whereEqualTo("roomId", currentRoom.getId())
+                .whereEqualTo("tenantId", tenantUid)
+                .whereEqualTo("status", "PENDING")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        btnRentRoomBottom.setText("⏳ Đã gửi yêu cầu (Đang chờ duyệt)");
+                        btnRentRoomBottom.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#D97706")));
+                        btnRentRoomBottom.setEnabled(false);
+                        btnRentRoomBottom.setVisibility(View.VISIBLE);
+                    } else {
+                        btnRentRoomBottom.setText("Gửi yêu cầu thuê phòng");
+                        btnRentRoomBottom.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#148369")));
+                        btnRentRoomBottom.setEnabled(true);
+                        btnRentRoomBottom.setVisibility(View.VISIBLE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    btnRentRoomBottom.setText("Gửi yêu cầu thuê phòng");
+                    btnRentRoomBottom.setVisibility(View.VISIBLE);
+                });
     }
 
     private void openEditScreen() {

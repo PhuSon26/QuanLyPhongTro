@@ -497,7 +497,25 @@
                         android:padding="18dp" />
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- NÚT CHỈNH SỬA -->
+                <!-- NÚT ĐĂNG KÝ THUÊ PHÒNG (DÀNH CHO NGƯỜI THUÊ) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRentRoomBottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="28dp"
+                    android:backgroundTint="#148369"
+                    android:text="Đăng ký thuê phòng"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/rh_ic_room"
+                    app:iconGravity="textStart"
+                    app:iconTint="#FFFFFF" />
+
+                <!-- NÚT CHỈNH SỬA (DÀNH CHO CHỦ TRỌ) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnEditRoomBottom"
                     android:layout_width="match_parent"

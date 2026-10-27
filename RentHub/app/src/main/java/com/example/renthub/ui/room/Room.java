@@ -11,6 +11,7 @@ public class Room implements Serializable {
     private String area;
     private String price;
     private String status;
+    private String tenantId;
     private String tenantName;
     private String tenantPhone;
 
@@ -44,6 +45,9 @@ public class Room implements Serializable {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 
     public String getTenantName() { return tenantName; }
     public void setTenantName(String tenantName) { this.tenantName = tenantName; }

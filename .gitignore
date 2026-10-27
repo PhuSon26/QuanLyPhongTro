@@ -8,3 +8,6 @@ local.properties
 **/local.properties
 *.iml
 .DS_Store
+.vscode/
+**/.vscode/
+

@@ -117,7 +117,16 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         checkRoleAndNavigate(mAuth.getCurrentUser().getUid());
                     } else {
-                        showLoginError();
+                        String errMsg = "Thông tin đăng nhập không chính xác";
+                        if (task.getException() != null && task.getException().getMessage() != null) {
+                            String msg = task.getException().getMessage();
+                            if (msg.toLowerCase().contains("network") || msg.toLowerCase().contains("timeout") || msg.toLowerCase().contains("unreachable")) {
+                                errMsg = "Lỗi kết nối mạng: Máy ảo chưa có Internet!";
+                            } else {
+                                errMsg = msg;
+                            }
+                        }
+                        showLoginError(errMsg);
                     }
                 });
     }
@@ -134,10 +143,10 @@ public class LoginActivity extends AppCompatActivity {
                         if (email != null && !email.isEmpty()) {
                             loginWithEmail(email, password);
                         } else {
-                            showLoginError();
+                            showLoginError("Không tìm thấy email liên kết với số điện thoại này");
                         }
                     } else {
-                        showLoginError();
+                        showLoginError("Số điện thoại chưa được đăng ký hoặc lỗi mạng");
                     }
                 });
     }
@@ -189,14 +198,18 @@ public class LoginActivity extends AppCompatActivity {
                             finish();
                         }
                     } else {
-                        showLoginError();
+                        showLoginError("Không tải được dữ liệu người dùng từ Firestore");
                     }
                 });
     }
 
     private void showLoginError() {
+        showLoginError("Thông tin đăng nhập không chính xác");
+    }
+
+    private void showLoginError(String message) {
         setLoading(false);
-        tvErrorMessage.setText("Thông tin đăng nhập không chính xác");
+        tvErrorMessage.setText(message);
         tvErrorMessage.setVisibility(View.VISIBLE);
     }
 

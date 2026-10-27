@@ -366,6 +366,32 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- KHU VỰC THEO DÕI KẾT QUẢ YÊU CẦU THUÊ PHÒNG (DÀNH CHO NGƯỜI THUÊ) -->
+            <LinearLayout
+                android:id="@+id/layoutRentalRequestsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvRequestsSectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Kết quả yêu cầu thuê phòng"
+                    android:textColor="#14344B"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvMyRentalRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+
             <!-- PHÒNG 2 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardRecentRoom2"
@@ -429,6 +455,27 @@
                         android:textColor="#2563A6"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- DANH SÁCH PHÒNG LÂN CẬN (DÀNH CHO NGƯỜI THUÊ) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewAvailableRooms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvEmptyAvailableRooms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:text="Hiện chưa có phòng nào còn trống"
+                android:textColor="#718096"
+                android:textSize="13sp"
+                android:visibility="gone" />
 
         </LinearLayout>
     </ScrollView>

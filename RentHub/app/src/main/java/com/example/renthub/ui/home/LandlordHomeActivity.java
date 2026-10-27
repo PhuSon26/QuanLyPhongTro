@@ -8,10 +8,15 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.renthub.R;
+import com.example.renthub.ui.room.LandlordRequestAdapter;
 import com.example.renthub.ui.room.LandlordRoomListActivity;
+import com.example.renthub.ui.room.RentalRequest;
 import com.example.renthub.ui.room.Room;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,8 +24,10 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class LandlordHomeActivity extends AppCompatActivity {
 
@@ -30,6 +37,13 @@ public class LandlordHomeActivity extends AppCompatActivity {
 
     // THỐNG KÊ
     private TextView tvStat1, tvStat2, tvStat3;
+
+    // YÊU CẦU THUÊ PHÒNG CHỜ DUYỆT
+    private View layoutLandlordRequestsSection;
+    private TextView tvLandlordRequestsTitle;
+    private RecyclerView rvLandlordRequests;
+    private LandlordRequestAdapter landlordRequestAdapter;
+    private final List<RentalRequest> pendingRequestList = new ArrayList<>();
 
     // PHÒNG GẦN ĐÂY
     private View cardRecentRoom1, cardRecentRoom2;
@@ -67,6 +81,27 @@ public class LandlordHomeActivity extends AppCompatActivity {
         tvStat2 = findViewById(R.id.tvStat2);
         tvStat3 = findViewById(R.id.tvStat3);
 
+        // Ánh xạ khu vực yêu cầu thuê phòng cần duyệt
+        layoutLandlordRequestsSection = findViewById(R.id.layoutLandlordRequestsSection);
+        tvLandlordRequestsTitle = findViewById(R.id.tvLandlordRequestsTitle);
+        rvLandlordRequests = findViewById(R.id.rvLandlordRequests);
+
+        if (rvLandlordRequests != null) {
+            rvLandlordRequests.setLayoutManager(new LinearLayoutManager(this));
+            landlordRequestAdapter = new LandlordRequestAdapter(pendingRequestList, new LandlordRequestAdapter.OnLandlordActionListener() {
+                @Override
+                public void onApprove(RentalRequest request) {
+                    confirmApproveRequest(request);
+                }
+
+                @Override
+                public void onReject(RentalRequest request) {
+                    confirmRejectRequest(request);
+                }
+            });
+            rvLandlordRequests.setAdapter(landlordRequestAdapter);
+        }
+
         // Ánh xạ CardView đại diện cho từng thẻ phòng
         cardRecentRoom1 = findViewById(R.id.cardRecentRoom1);
         cardRecentRoom2 = findViewById(R.id.cardRecentRoom2);
@@ -99,9 +134,13 @@ public class LandlordHomeActivity extends AppCompatActivity {
         }
 
         if (btnHomeNotification != null) {
-            btnHomeNotification.setOnClickListener(v ->
-                    Toast.makeText(LandlordHomeActivity.this, "Không có thông báo mới", Toast.LENGTH_SHORT).show()
-            );
+            btnHomeNotification.setOnClickListener(v -> {
+                if (!pendingRequestList.isEmpty()) {
+                    Toast.makeText(LandlordHomeActivity.this, "Bạn có " + pendingRequestList.size() + " yêu cầu thuê phòng chờ duyệt!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(LandlordHomeActivity.this, "Không có thông báo mới", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         View btnNavSettings = findViewById(R.id.btnNavSettings);
@@ -123,6 +162,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Room> roomList = new ArrayList<>();
+                    List<String> myRoomIds = new ArrayList<>();
                     int occupied = 0;
                     int available = 0;
 
@@ -131,6 +171,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
                         if (room != null) {
                             room.setId(doc.getId());
                             roomList.add(room);
+                            myRoomIds.add(doc.getId());
 
                             String status = room.getStatus() != null ? room.getStatus().toLowerCase() : "";
                             if (status.contains("thuê") || status.contains("occupied")) {
@@ -148,8 +189,115 @@ public class LandlordHomeActivity extends AppCompatActivity {
                     if (tvStat3 != null) tvStat3.setText(String.format(Locale.getDefault(), "%02d", available));
 
                     updateRecentRoomsUI(roomList);
+                    loadPendingRentalRequests(uid, myRoomIds);
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void loadPendingRentalRequests(String uid, List<String> myRoomIds) {
+        db.collection("rental_requests")
+                .whereEqualTo("status", "PENDING")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    pendingRequestList.clear();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        RentalRequest req = doc.toObject(RentalRequest.class);
+                        if (req != null) {
+                            req.setId(doc.getId());
+                            boolean isMyRequest = (req.getLandlordId() != null && req.getLandlordId().equals(uid))
+                                    || (req.getRoomId() != null && myRoomIds.contains(req.getRoomId()));
+                            if (isMyRequest) {
+                                pendingRequestList.add(req);
+                            }
+                        }
+                    }
+
+                    if (landlordRequestAdapter != null) {
+                        landlordRequestAdapter.notifyDataSetChanged();
+                    }
+
+                    if (layoutLandlordRequestsSection != null) {
+                        if (!pendingRequestList.isEmpty()) {
+                            layoutLandlordRequestsSection.setVisibility(View.VISIBLE);
+                            if (tvLandlordRequestsTitle != null) {
+                                tvLandlordRequestsTitle.setText("Yêu cầu thuê phòng cần duyệt (" + pendingRequestList.size() + ")");
+                            }
+                        } else {
+                            layoutLandlordRequestsSection.setVisibility(View.GONE);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Xử lý im lặng nếu mạng bận
+                });
+    }
+
+    private void confirmApproveRequest(RentalRequest request) {
+        String tenantName = request.getTenantName() != null ? request.getTenantName() : "người thuê này";
+        String roomName = request.getRoomName() != null ? request.getRoomName() : "phòng trọ";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Duyệt yêu cầu thuê phòng")
+                .setMessage("Bạn có chắc chắn đồng ý cho " + tenantName + " thuê " + roomName + " không?\nSau khi duyệt, phòng sẽ chuyển sang trạng thái 'Đang thuê'.")
+                .setPositiveButton("Duyệt ngay", (dialog, which) -> executeApproveRequest(request))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void executeApproveRequest(RentalRequest request) {
+        if (request.getId() == null || request.getRoomId() == null) return;
+
+        // 1. Cập nhật rental_requests: status = "APPROVED"
+        db.collection("rental_requests").document(request.getId())
+                .update("status", "APPROVED")
+                .addOnSuccessListener(aVoid -> {
+                    // 2. Cập nhật room: status = "Đang thuê", tenantId, tenantName, tenantPhone, occupants
+                    Map<String, Object> roomUpdates = new HashMap<>();
+                    roomUpdates.put("status", "Đang thuê");
+                    roomUpdates.put("tenantId", request.getTenantId());
+                    roomUpdates.put("tenantName", request.getTenantName());
+                    roomUpdates.put("tenantPhone", request.getTenantPhone());
+                    roomUpdates.put("occupants", request.getOccupants());
+
+                    db.collection("rooms").document(request.getRoomId())
+                            .update(roomUpdates)
+                            .addOnSuccessListener(unused -> {
+                                Toast.makeText(this, "Đã duyệt yêu cầu thuê phòng thành công!", Toast.LENGTH_SHORT).show();
+                                loadDashboardData();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Lỗi cập nhật phòng: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                loadDashboardData();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Lỗi duyệt yêu cầu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void confirmRejectRequest(RentalRequest request) {
+        String tenantName = request.getTenantName() != null ? request.getTenantName() : "người thuê này";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Từ chối yêu cầu thuê phòng")
+                .setMessage("Bạn có chắc chắn muốn từ chối yêu cầu thuê phòng của " + tenantName + " không?")
+                .setPositiveButton("Từ chối", (dialog, which) -> executeRejectRequest(request))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void executeRejectRequest(RentalRequest request) {
+        if (request.getId() == null) return;
+
+        db.collection("rental_requests").document(request.getId())
+                .update("status", "REJECTED", "rejectReason", "Chủ trọ đã từ chối yêu cầu thuê")
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Đã từ chối yêu cầu thuê phòng", Toast.LENGTH_SHORT).show();
+                    loadDashboardData();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     /**
@@ -206,4 +354,4 @@ public class LandlordHomeActivity extends AppCompatActivity {
             }
         }
     }
-}
+}

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeColor="#E2E8F0"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- HEADER: TÊN PHÒNG & BADGE CHỜ DUYỆT -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvLandlordReqRoomName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Phòng A101"
+                    android:textColor="#14344B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvLandlordReqRoomPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="2.500.000đ/tháng"
+                    android:textColor="#148369"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvLandlordReqStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_bottom_sheet_rounded"
+                android:backgroundTint="#FEF3C7"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="🟡 Chờ bạn duyệt"
+                android:textColor="#B45309"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="12dp"
+            android:background="#F1F5F9" />
+
+        <!-- THÔNG TIN NGƯỜI XIN THUÊ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvLandlordReqTenantName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Người thuê: Nguyễn Văn A"
+                    android:textColor="#1E293B"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvLandlordReqTenantPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="SĐT: 0912 345 678"
+                    android:textColor="#64748B"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- NÚT GỌI ĐIỆN NHANH -->
+            <ImageButton
+                android:id="@+id/btnCallApplicant"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_bottom_sheet_rounded"
+                android:backgroundTint="#E3F5ED"
+                android:contentDescription="Gọi cho người xin thuê"
+                android:src="@drawable/ic_phone"
+                app:tint="#148369" />
+        </LinearLayout>
+
+        <!-- THỜI GIAN & THỜI HẠN -->
+        <TextView
+            android:id="@+id/tvLandlordReqStartDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Dự kiến vào ở: 01/11/2026 (Hạn thuê: 6 tháng)"
+            android:textColor="#475569"
+            android:textSize="13sp" />
+
+        <!-- NGƯỜI Ở CÙNG (NẾU CÓ) -->
+        <TextView
+            android:id="@+id/tvLandlordReqOccupants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Người ở cùng: Không có"
+            android:textColor="#64748B"
+            android:textSize="12sp" />
+
+        <!-- GHI CHÚ (NẾU CÓ) -->
+        <TextView
+            android:id="@+id/tvLandlordReqNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Ghi chú: Em xin dọn đồ vào trước 1 ngày"
+            android:textColor="#64748B"
+            android:textSize="12sp"
+            android:textStyle="italic" />
+
+        <!-- NÚT HÀNH ĐỘNG: TỪ CHỐI & DUYỆT THUÊ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRejectRequest"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="Từ chối"
+                android:textAllCaps="false"
+                android:textColor="#DC2626"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="#FECACA"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApproveRequest"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1.2"
+                android:layout_marginStart="6dp"
+                android:backgroundTint="#148369"
+                android:text="Duyệt thuê"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

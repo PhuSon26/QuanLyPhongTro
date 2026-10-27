@@ -289,6 +289,32 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
+            <!-- KHU VỰC DUYỆT YÊU CẦU THUÊ PHÒNG (DÀNH CHO CHỦ TRỌ) -->
+            <LinearLayout
+                android:id="@+id/layoutLandlordRequestsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvLandlordRequestsTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Yêu cầu thuê phòng cần duyệt"
+                    android:textColor="#14344B"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvLandlordRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+
             <!-- PHÒNG GẦN ĐÂY -->
             <TextView
                 android:id="@+id/tvRoomSectionTitle"

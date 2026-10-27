@@ -44,6 +44,16 @@ public class LoginActivity extends AppCompatActivity {
         setupListeners();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // TỰ ĐỘNG ĐĂNG NHẬP: Nếu đã có tài khoản đăng nhập trước đó thì bỏ qua màn hình đăng nhập
+        if (mAuth.getCurrentUser() != null) {
+            setLoading(true);
+            checkRoleAndNavigate(mAuth.getCurrentUser().getUid());
+        }
+    }
+
     private void initViews() {
         edtEmail = findViewById(R.id.edtEmail);
         edtPassword = findViewById(R.id.edtPassword);
@@ -51,6 +61,13 @@ public class LoginActivity extends AppCompatActivity {
         tvErrorMessage = findViewById(R.id.tvErrorMessage);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         tvSignUp = findViewById(R.id.tvSignUp);
+
+        // Tự động điền email/tài khoản lần đăng nhập gần nhất
+        android.content.SharedPreferences prefs = getSharedPreferences("RentHubPrefs", MODE_PRIVATE);
+        String savedEmail = prefs.getString("SAVED_ACCOUNT", "");
+        if (!TextUtils.isEmpty(savedEmail) && edtEmail.getText().toString().isEmpty()) {
+            edtEmail.setText(savedEmail);
+        }
     }
 
     private void setupListeners() {
@@ -115,6 +132,10 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
+                        getSharedPreferences("RentHubPrefs", MODE_PRIVATE)
+                                .edit()
+                                .putString("SAVED_ACCOUNT", email)
+                                .apply();
                         checkRoleAndNavigate(mAuth.getCurrentUser().getUid());
                     } else {
                         String errMsg = "Thông tin đăng nhập không chính xác";

@@ -21,7 +21,7 @@ import java.util.Map;
 public class EditProfileActivity extends AppCompatActivity {
 
     private TextInputEditText edtFullName, edtPhone;
-    private MaterialButton btnSaveProfile;
+    private MaterialButton btnSaveProfile, btnLogout;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -37,6 +37,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         initViews();
         getIntentData();
+        loadExistingProfile();
         setupListeners();
     }
 
@@ -44,6 +45,7 @@ public class EditProfileActivity extends AppCompatActivity {
         edtFullName = findViewById(R.id.edtFullName);
         edtPhone = findViewById(R.id.edtPhone);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
+        btnLogout = findViewById(R.id.btnLogout);
     }
 
     private void getIntentData() {
@@ -52,8 +54,42 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    private void loadExistingProfile() {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String fullName = documentSnapshot.getString("fullName");
+                        String phone = documentSnapshot.getString("phone");
+                        String role = documentSnapshot.getString("role");
+
+                        if (!TextUtils.isEmpty(fullName) && edtFullName.getText().toString().isEmpty()) {
+                            edtFullName.setText(fullName);
+                        }
+                        if (!TextUtils.isEmpty(phone) && edtPhone.getText().toString().isEmpty()) {
+                            edtPhone.setText(phone);
+                        }
+                        if (userRole == null || userRole.isEmpty()) {
+                            userRole = role;
+                        }
+                    }
+                });
+    }
+
     private void setupListeners() {
         btnSaveProfile.setOnClickListener(v -> saveProfileToFirestore());
+
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(v -> {
+                mAuth.signOut();
+                Intent intent = new Intent(EditProfileActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
     }
 
     private void saveProfileToFirestore() {

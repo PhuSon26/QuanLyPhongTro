@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -190,7 +191,10 @@ public class SettingsActivity extends AppCompatActivity {
         );
 
         // Chức năng: Đăng xuất (Chủ trọ & Người thuê)
-        findViewById(R.id.cardLogout).setOnClickListener(v -> showLogoutConfirmDialog());
+        View btnLogout = findViewById(R.id.btnDoLogout);
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(v -> showLogoutConfirmDialog());
+        }
     }
 
     private void showLogoutConfirmDialog() {
@@ -198,18 +202,20 @@ public class SettingsActivity extends AppCompatActivity {
                 .setTitle("Đăng xuất tài khoản")
                 .setMessage("Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng RentHub không?")
                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
-                .setPositiveButton("Đăng xuất", (dialog, which) -> {
-                    // Thực hiện đăng xuất tài khoản Firebase
-                    mAuth.signOut();
-
-                    Toast.makeText(SettingsActivity.this, "Đã đăng xuất thành công!", Toast.LENGTH_SHORT).show();
-
-                    // Chuyển về màn hình đăng nhập và dọn dẹp task stack
-                    Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                })
+                .setPositiveButton("Đăng xuất", (dialog, which) -> performLogout())
                 .show();
+    }
+
+    private void performLogout() {
+        // Thực hiện đăng xuất tài khoản Firebase
+        mAuth.signOut();
+
+        Toast.makeText(SettingsActivity.this, "Đã đăng xuất thành công!", Toast.LENGTH_SHORT).show();
+
+        // Chuyển về màn hình đăng nhập và dọn dẹp toàn bộ task stack
+        Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finishAffinity();
     }
 }

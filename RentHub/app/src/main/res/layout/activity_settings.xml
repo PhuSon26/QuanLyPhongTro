@@ -418,45 +418,27 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION 4: ĐĂNG XUẤT -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardLogout"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDoLogout"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginTop="28dp"
                 android:layout_marginBottom="32dp"
-                app:cardBackgroundColor="#FEF2F2"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
+                android:backgroundTint="#FEF2F2"
+                android:text="Đăng xuất tài khoản"
+                android:textAllCaps="false"
+                android:textColor="#DC2626"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_logout"
+                app:iconGravity="textStart"
+                app:iconPadding="10dp"
+                app:iconSize="22dp"
+                app:iconTint="#DC2626"
                 app:strokeColor="#FECACA"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:paddingVertical="15dp"
-                    android:paddingHorizontal="20dp">
-
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:src="@drawable/ic_logout"
-                        app:tint="#DC2626" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="Đăng xuất tài khoản"
-                        android:textColor="#DC2626"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                app:strokeWidth="1dp" />
 
         </LinearLayout>
     </ScrollView>

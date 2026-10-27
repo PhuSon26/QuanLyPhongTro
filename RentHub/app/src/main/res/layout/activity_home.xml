@@ -58,7 +58,8 @@
             app:tint="#14344B"/>
     </LinearLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/homeNestedScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -406,7 +407,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="Kết quả yêu cầu thuê phòng"
+                    android:text="Yêu cầu thuê phòng"
                     android:textColor="#14344B"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -483,6 +484,18 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- DANH SÁCH PHÒNG LÂN CẬN (DÀNH CHO NGƯỜI THUÊ) -->
+            <TextView
+                android:id="@+id/tvAvailableRoomsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="4dp"
+                android:text="Phòng trọ gần đây"
+                android:textColor="#14344B"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewAvailableRooms"
                 android:layout_width="match_parent"
@@ -504,7 +517,7 @@
                 android:visibility="gone" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <include layout="@layout/layout_rh_bottom_nav"/>
 

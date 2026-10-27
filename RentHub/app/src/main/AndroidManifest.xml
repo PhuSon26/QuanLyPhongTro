@@ -48,6 +48,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.room.TenantRentedRoomsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.room.LandlordRoomListActivity"
             android:exported="false" />
         <activity

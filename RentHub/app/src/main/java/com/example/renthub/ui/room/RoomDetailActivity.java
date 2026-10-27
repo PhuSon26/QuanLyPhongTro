@@ -32,7 +32,7 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_ROOM = "EXTRA_ROOM";
 
-    private ImageButton btnBack, btnCallTenant, btnCallLandlord;
+    private ImageButton btnBack, btnCallTenant, btnCallLandlord, btnSmsTenant, btnSmsLandlord;
     private MaterialButton btnEditRoomBottom, btnRentRoomBottom;
     private TextView tvDetailRoomName, tvDetailLocation, tvDetailStatus, tvDetailPrice, tvDetailArea, tvDetailOccupancy;
     private TextView tvDetailLandlordName, tvDetailLandlordPhone;
@@ -60,6 +60,8 @@ public class RoomDetailActivity extends AppCompatActivity {
         btnRentRoomBottom = findViewById(R.id.btnRentRoomBottom);
         btnCallTenant = findViewById(R.id.btnCallTenant);
         btnCallLandlord = findViewById(R.id.btnCallLandlord);
+        btnSmsTenant = findViewById(R.id.btnSmsTenant);
+        btnSmsLandlord = findViewById(R.id.btnSmsLandlord);
 
         tvDetailRoomName = findViewById(R.id.tvDetailRoomName);
         tvDetailLocation = findViewById(R.id.tvDetailLocation);
@@ -224,11 +226,31 @@ public class RoomDetailActivity extends AppCompatActivity {
             }
         });
 
+        btnSmsLandlord.setOnClickListener(v -> {
+            if (currentRoom != null && currentRoom.getLandlordPhone() != null && !currentRoom.getLandlordPhone().trim().isEmpty()) {
+                Intent smsIntent = new Intent(Intent.ACTION_SENDTO);
+                smsIntent.setData(Uri.parse("smsto:" + currentRoom.getLandlordPhone()));
+                startActivity(smsIntent);
+            } else {
+                Toast.makeText(this, "Chưa có số điện thoại chủ trọ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         btnCallTenant.setOnClickListener(v -> {
             if (currentRoom != null && currentRoom.getTenantPhone() != null && !currentRoom.getTenantPhone().trim().isEmpty()) {
                 Intent callIntent = new Intent(Intent.ACTION_DIAL);
                 callIntent.setData(Uri.parse("tel:" + currentRoom.getTenantPhone()));
                 startActivity(callIntent);
+            } else {
+                Toast.makeText(this, "Chưa có số điện thoại người thuê", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnSmsTenant.setOnClickListener(v -> {
+            if (currentRoom != null && currentRoom.getTenantPhone() != null && !currentRoom.getTenantPhone().trim().isEmpty()) {
+                Intent smsIntent = new Intent(Intent.ACTION_SENDTO);
+                smsIntent.setData(Uri.parse("smsto:" + currentRoom.getTenantPhone()));
+                startActivity(smsIntent);
             } else {
                 Toast.makeText(this, "Chưa có số điện thoại người thuê", Toast.LENGTH_SHORT).show();
             }
@@ -263,14 +285,21 @@ public class RoomDetailActivity extends AppCompatActivity {
                             || role.toLowerCase().contains("chủ"));
 
                     String status = currentRoom != null && currentRoom.getStatus() != null ? currentRoom.getStatus().toLowerCase() : "";
-                    boolean isRented = status.contains("thuê") || status.contains("occupied") || (currentRoom != null && currentRoom.isFull());
+                    boolean isMaintenance = status.contains("trì") || status.contains("maintenance");
+                    boolean isFull = (currentRoom != null && currentRoom.isFull()) || status.contains("đủ") || status.contains("hết");
+                    boolean isCurrentTenant = currentRoom != null && currentRoom.getTenantId() != null && currentRoom.getTenantId().equals(user.getUid());
 
                     if (isLandlord) {
                         btnEditRoomBottom.setVisibility(View.VISIBLE);
                         btnRentRoomBottom.setVisibility(View.GONE);
                     } else {
                         btnEditRoomBottom.setVisibility(View.GONE);
-                        if (!isRented) {
+                        if (isCurrentTenant) {
+                            btnRentRoomBottom.setText("Bạn đang thuê phòng này");
+                            btnRentRoomBottom.setEnabled(false);
+                            btnRentRoomBottom.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#2563A6")));
+                            btnRentRoomBottom.setVisibility(View.VISIBLE);
+                        } else if (!isMaintenance && !isFull) {
                             checkPendingRentalRequest(user.getUid());
                         } else {
                             btnRentRoomBottom.setVisibility(View.GONE);

@@ -291,7 +291,7 @@
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
-                                android:src="@drawable/ic_email"
+                                android:src="@drawable/ic_user"
                                 app:tint="#148369" />
 
                             <TextView
@@ -328,7 +328,7 @@
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
-                                android:src="@drawable/ic_lock"
+                                android:src="@drawable/ic_phone"
                                 app:tint="#148369" />
 
                             <TextView
@@ -349,14 +349,36 @@
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
 
-                            <ImageButton
-                                android:id="@+id/btnCallLandlord"
-                                android:layout_width="38dp"
-                                android:layout_height="38dp"
-                                android:background="@drawable/bg_login_pattern"
-                                android:contentDescription="Gọi chủ trọ"
-                                android:src="@drawable/rh_ic_bell"
-                                app:tint="#148369" />
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <ImageButton
+                                    android:id="@+id/btnCallLandlord"
+                                    android:layout_width="38dp"
+                                    android:layout_height="38dp"
+                                    android:background="@drawable/bg_action_call"
+                                    android:contentDescription="Gọi chủ trọ"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_phone"
+                                    app:tint="#148369" />
+
+                                <Space
+                                    android:layout_width="8dp"
+                                    android:layout_height="1dp" />
+
+                                <ImageButton
+                                    android:id="@+id/btnSmsLandlord"
+                                    android:layout_width="38dp"
+                                    android:layout_height="38dp"
+                                    android:background="@drawable/bg_action_sms"
+                                    android:contentDescription="Nhắn tin cho chủ trọ"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_sms"
+                                    app:tint="#2563A6" />
+                            </LinearLayout>
                         </LinearLayout>
 
                     </LinearLayout>
@@ -397,7 +419,7 @@
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
-                                android:src="@drawable/ic_email"
+                                android:src="@drawable/ic_user"
                                 app:tint="#148369" />
 
                             <TextView
@@ -434,7 +456,7 @@
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
-                                android:src="@drawable/ic_lock"
+                                android:src="@drawable/ic_phone"
                                 app:tint="#148369" />
 
                             <TextView
@@ -455,14 +477,36 @@
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
 
-                            <ImageButton
-                                android:id="@+id/btnCallTenant"
-                                android:layout_width="38dp"
-                                android:layout_height="38dp"
-                                android:background="@drawable/bg_login_pattern"
-                                android:contentDescription="Gọi người thuê"
-                                android:src="@drawable/rh_ic_bell"
-                                app:tint="#148369" />
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <ImageButton
+                                    android:id="@+id/btnCallTenant"
+                                    android:layout_width="38dp"
+                                    android:layout_height="38dp"
+                                    android:background="@drawable/bg_action_call"
+                                    android:contentDescription="Gọi người thuê"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_phone"
+                                    app:tint="#148369" />
+
+                                <Space
+                                    android:layout_width="8dp"
+                                    android:layout_height="1dp" />
+
+                                <ImageButton
+                                    android:id="@+id/btnSmsTenant"
+                                    android:layout_width="38dp"
+                                    android:layout_height="38dp"
+                                    android:background="@drawable/bg_action_sms"
+                                    android:contentDescription="Nhắn tin cho người thuê"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_sms"
+                                    app:tint="#2563A6" />
+                            </LinearLayout>
                         </LinearLayout>
 
                     </LinearLayout>

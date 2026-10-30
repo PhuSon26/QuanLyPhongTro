@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.renthub.R;
+import com.example.renthub.ui.invoice.InvoiceListActivity;
 import com.example.renthub.ui.room.LandlordRequestAdapter;
 import com.example.renthub.ui.room.LandlordRoomListActivity;
 import com.example.renthub.ui.room.RentalRequest;
@@ -35,8 +36,8 @@ public class LandlordHomeActivity extends AppCompatActivity {
     private MaterialButton btnHomeViewRooms;
     private ImageButton btnHomeNotification;
 
-    // THỐNG KÊ
-    private TextView tvStat1, tvStat2, tvStat3;
+    // THỐNG KÊ (ĐỦ 4 THẺ)
+    private TextView tvStat1, tvStat2, tvStat3, tvStat4;
 
     // YÊU CẦU THUÊ PHÒNG CHỜ DUYỆT
     private View layoutLandlordRequestsSection;
@@ -77,11 +78,11 @@ public class LandlordHomeActivity extends AppCompatActivity {
         btnHomeViewRooms = findViewById(R.id.btnHomeViewRooms);
         btnHomeNotification = findViewById(R.id.btnHomeNotification);
 
-        tvStat1 = findViewById(R.id.tvStat1);
-        tvStat2 = findViewById(R.id.tvStat2);
-        tvStat3 = findViewById(R.id.tvStat3);
+        tvStat1 = findViewById(R.id.tvStat1); // Tổng phòng
+        tvStat2 = findViewById(R.id.tvStat2); // Đang thuê
+        tvStat3 = findViewById(R.id.tvStat3); // Còn trống
+        tvStat4 = findViewById(R.id.tvStat4); // Bảo trì
 
-        // Ánh xạ khu vực yêu cầu thuê phòng cần duyệt
         layoutLandlordRequestsSection = findViewById(R.id.layoutLandlordRequestsSection);
         tvLandlordRequestsTitle = findViewById(R.id.tvLandlordRequestsTitle);
         rvLandlordRequests = findViewById(R.id.rvLandlordRequests);
@@ -102,7 +103,6 @@ public class LandlordHomeActivity extends AppCompatActivity {
             rvLandlordRequests.setAdapter(landlordRequestAdapter);
         }
 
-        // Ánh xạ CardView đại diện cho từng thẻ phòng
         cardRecentRoom1 = findViewById(R.id.cardRecentRoom1);
         cardRecentRoom2 = findViewById(R.id.cardRecentRoom2);
 
@@ -143,6 +143,14 @@ public class LandlordHomeActivity extends AppCompatActivity {
             });
         }
 
+        View btnNavInvoice = findViewById(R.id.btnNavInvoice);
+        if (btnNavInvoice != null) {
+            btnNavInvoice.setOnClickListener(v -> {
+                Intent intent = new Intent(LandlordHomeActivity.this, InvoiceListActivity.class);
+                startActivity(intent);
+            });
+        }
+
         View btnNavSettings = findViewById(R.id.btnNavSettings);
         if (btnNavSettings != null) {
             btnNavSettings.setOnClickListener(v -> {
@@ -165,6 +173,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
                     List<String> myRoomIds = new ArrayList<>();
                     int occupied = 0;
                     int available = 0;
+                    int maintenance = 0;
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         Room room = doc.toObject(Room.class);
@@ -176,6 +185,8 @@ public class LandlordHomeActivity extends AppCompatActivity {
                             String status = room.getStatus() != null ? room.getStatus().toLowerCase() : "";
                             if (status.contains("thuê") || status.contains("occupied")) {
                                 occupied++;
+                            } else if (status.contains("trì") || status.contains("maintenance")) {
+                                maintenance++;
                             } else if (status.contains("trống") || status.contains("available")) {
                                 available++;
                             }
@@ -187,6 +198,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
                     if (tvStat1 != null) tvStat1.setText(String.format(Locale.getDefault(), "%02d", total));
                     if (tvStat2 != null) tvStat2.setText(String.format(Locale.getDefault(), "%02d", occupied));
                     if (tvStat3 != null) tvStat3.setText(String.format(Locale.getDefault(), "%02d", available));
+                    if (tvStat4 != null) tvStat4.setText(String.format(Locale.getDefault(), "%02d", maintenance));
 
                     updateRecentRoomsUI(roomList);
                     loadPendingRentalRequests(uid, myRoomIds);
@@ -228,7 +240,6 @@ public class LandlordHomeActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Xử lý im lặng nếu mạng bận
                 });
     }
 
@@ -247,11 +258,9 @@ public class LandlordHomeActivity extends AppCompatActivity {
     private void executeApproveRequest(RentalRequest request) {
         if (request.getId() == null || request.getRoomId() == null) return;
 
-        // 1. Cập nhật rental_requests: status = "APPROVED"
         db.collection("rental_requests").document(request.getId())
                 .update("status", "APPROVED")
                 .addOnSuccessListener(aVoid -> {
-                    // 2. Cập nhật room: status = "Đang thuê", tenantId, tenantName, tenantPhone, occupants
                     Map<String, Object> roomUpdates = new HashMap<>();
                     roomUpdates.put("status", "Đang thuê");
                     roomUpdates.put("tenantId", request.getTenantId());
@@ -300,9 +309,6 @@ public class LandlordHomeActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * ẨN/HIỆN THẺ PHÒNG THEO SỐ LƯỢNG PHÒNG THỰC TẾ
-     */
     private void updateRecentRoomsUI(List<Room> rooms) {
         if (rooms == null || rooms.isEmpty()) {
             if (cardRecentRoom1 != null) cardRecentRoom1.setVisibility(View.GONE);
@@ -310,20 +316,17 @@ public class LandlordHomeActivity extends AppCompatActivity {
             return;
         }
 
-        // Hiển thị Phòng 1
         if (cardRecentRoom1 != null) {
             cardRecentRoom1.setVisibility(View.VISIBLE);
             bindRoomDataToView(rooms.get(0), tvRecentRoom1, tvRecentRoomDesc1, tvRecentStatus1);
         }
 
-        // Kiểm tra xem có Phòng thứ 2 hay không
         if (rooms.size() > 1) {
             if (cardRecentRoom2 != null) {
                 cardRecentRoom2.setVisibility(View.VISIBLE);
                 bindRoomDataToView(rooms.get(1), tvRecentRoom2, tvRecentRoomDesc2, tvRecentStatus2);
             }
         } else {
-            // Nếu chỉ có 1 phòng -> ẨN THẺ PHÒNG 2 HOÀN TOÀN
             if (cardRecentRoom2 != null) {
                 cardRecentRoom2.setVisibility(View.GONE);
             }
@@ -354,4 +357,4 @@ public class LandlordHomeActivity extends AppCompatActivity {
             }
         }
     }
-}
+}

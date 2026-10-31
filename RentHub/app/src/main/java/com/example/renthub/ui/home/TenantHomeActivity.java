@@ -39,6 +39,9 @@ public class TenantHomeActivity extends AppCompatActivity {
     private RoomAdapter roomAdapter;
     private final List<Room> availableRoomList = new ArrayList<>();
 
+    private final ArrayList<String> rentedRoomIds = new ArrayList<>();
+    private final ArrayList<String> rentedRoomNames = new ArrayList<>();
+
     // Khu vực hiển thị kết quả yêu cầu thuê phòng (Dành cho người thuê)
     private View layoutRentalRequestsSection;
     private RecyclerView rvMyRentalRequests;
@@ -192,11 +195,21 @@ public class TenantHomeActivity extends AppCompatActivity {
             cardRecentRoom1.setOnClickListener(openMyRoomListener);
         }
 
+
         // Bắt sự kiện menu bottom nav: Chuyển sang màn hình Cài đặt & Tài khoản
         View btnNavSettings = findViewById(R.id.btnNavSettings);
         if (btnNavSettings != null) {
             btnNavSettings.setOnClickListener(v -> {
                 Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.settings.SettingsActivity.class);
+                startActivity(intent);
+            });
+        }
+        View cardIssue = findViewById(R.id.btnNavIssues);
+        if (cardIssue != null) {
+            cardIssue.setOnClickListener(v -> {
+                Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.issue.IssueListActivity.class);
+                intent.putStringArrayListExtra("EXTRA_ROOM_IDS", rentedRoomIds);
+                intent.putStringArrayListExtra("EXTRA_ROOM_NAMES", rentedRoomNames);
                 startActivity(intent);
             });
         }

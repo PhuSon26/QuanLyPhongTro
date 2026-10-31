@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Màu nền của trạng thái (Bạn có thể đổi mã màu #HEX tùy ý ở đây) -->
+    <solid android:color="#4CAF50" />
+
+    <!-- Độ bo tròn góc (8dp sẽ bo nhẹ, nếu muốn tròn hẳn dạng viên thuốc bạn có thể tăng lên 50dp) -->
+    <corners android:radius="50dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#CCCCCC" />
+</shape>

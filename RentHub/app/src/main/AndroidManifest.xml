@@ -75,5 +75,8 @@
         <activity
             android:name=".ui.settings.ChangePasswordActivity"
             android:exported="false" />
+        <activity android:name=".ui.issue.IssueListActivity" />
+        <activity android:name=".ui.issue.CreateIssueActivity" />
+        <activity android:name=".ui.issue.IssueDetailActivity" />
     </application>
 </manifest>

@@ -17,10 +17,14 @@ import com.bumptech.glide.Glide;
 import com.example.renthub.R;
 import com.example.renthub.ui.auth.EditProfileActivity;
 import com.example.renthub.ui.auth.LoginActivity;
+import com.example.renthub.ui.invoice.Invoice;
+import com.example.renthub.ui.invoice.InvoiceListActivity;
+import com.example.renthub.ui.invoice.TenantInvoiceDetailActivity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -128,15 +132,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupPushNotificationSwitch() {
         if (switchPushNotifications == null) return;
 
-        // Đọc cài đặt đã lưu (mặc định bật)
         boolean isEnabled = prefs.getBoolean(KEY_PUSH_NOTIFICATIONS, true);
         switchPushNotifications.setChecked(isEnabled);
 
         switchPushNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // 1. Lưu cài đặt cục bộ
             prefs.edit().putBoolean(KEY_PUSH_NOTIFICATIONS, isChecked).apply();
 
-            // 2. Đồng bộ lên Firestore
             FirebaseUser currentUser = mAuth.getCurrentUser();
             if (currentUser != null) {
                 Map<String, Object> updateData = new HashMap<>();
@@ -144,7 +145,6 @@ public class SettingsActivity extends AppCompatActivity {
                 db.collection("users").document(currentUser.getUid()).update(updateData);
             }
 
-            // 3. Phản hồi Toast cho người dùng
             if (isChecked) {
                 Toast.makeText(this, "Đã bật nhận thông báo push", Toast.LENGTH_SHORT).show();
             } else {
@@ -154,9 +154,30 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        btnBack.setOnClickListener(v -> finish());
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // Chức năng: Xem và chỉnh sửa thông tin cá nhân (Profile: Họ tên, SĐT, Email, Avatar)
+        // CHUYỂN TAB BOTTOM NAVIGATION
+        View btnNavRoom = findViewById(R.id.btnNavRoom);
+        if (btnNavRoom != null) {
+            btnNavRoom.setOnClickListener(v -> finish());
+        }
+
+        View btnNavInvoice = findViewById(R.id.btnNavInvoice);
+        if (btnNavInvoice != null) {
+            btnNavInvoice.setOnClickListener(v -> {
+                boolean isLandlord = currentRole.equalsIgnoreCase("LANDLORD")
+                        || currentRole.equalsIgnoreCase("CHỦ TRỌ")
+                        || currentRole.toLowerCase().contains("chủ");
+
+                if (isLandlord) {
+                    startActivity(new Intent(SettingsActivity.this, InvoiceListActivity.class));
+                    finish();
+                } else {
+                    loadTenantInvoiceAndNavigate();
+                }
+            });
+        }
+
         findViewById(R.id.itemEditProfile).setOnClickListener(v -> {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null) {
@@ -167,33 +188,162 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        // Chức năng: Đổi mật khẩu
         findViewById(R.id.itemChangePassword).setOnClickListener(v -> {
             Intent intent = new Intent(SettingsActivity.this, ChangePasswordActivity.class);
             startActivity(intent);
         });
 
-        // Click vào cả hàng thông báo để toggle switch
         findViewById(R.id.itemNotifications).setOnClickListener(v -> {
             if (switchPushNotifications != null) {
                 switchPushNotifications.setChecked(!switchPushNotifications.isChecked());
             }
         });
 
-        // Ngôn ngữ
         findViewById(R.id.itemLanguage).setOnClickListener(v ->
                 Toast.makeText(this, "Ngôn ngữ mặc định: Tiếng Việt", Toast.LENGTH_SHORT).show()
         );
 
-        // Điều khoản
         findViewById(R.id.itemTerms).setOnClickListener(v ->
                 Toast.makeText(this, "Điều khoản & Chính sách bảo mật RentHub 2026", Toast.LENGTH_SHORT).show()
         );
 
-        // Chức năng: Đăng xuất (Chủ trọ & Người thuê)
         View btnLogout = findViewById(R.id.btnDoLogout);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> showLogoutConfirmDialog());
+        }
+    }
+
+    /**
+     * TÌM KIẾM HÓA ĐƠN TRỌN GÓI DÀNH CHO NGƯỜI THUÊ:
+     * Khớp lần lượt qua các trường: UID -> Email -> Họ tên -> Phòng người dùng thuê -> Collection "rooms".
+     */
+    private void loadTenantInvoiceAndNavigate() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String uid = currentUser.getUid();
+        String email = currentUser.getEmail() != null ? currentUser.getEmail().trim() : "";
+
+        // 1. Lấy thông tin tài khoản người dùng
+        db.collection("users").document(uid).get().addOnSuccessListener(userDoc -> {
+            String fullName = (userDoc.exists() && userDoc.getString("fullName") != null) ? userDoc.getString("fullName").trim() : "";
+            String userRoomName = (userDoc.exists() && userDoc.getString("roomName") != null) ? userDoc.getString("roomName").trim() : "";
+            String userRoomId = (userDoc.exists() && userDoc.getString("roomId") != null) ? userDoc.getString("roomId").trim() : "";
+
+            // 2. Lấy danh sách hóa đơn và so sánh đối chiếu nhiều tiêu chí
+            db.collection("invoices").get().addOnSuccessListener(querySnapshot -> {
+                DocumentSnapshot matchedDoc = null;
+
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String invTenantId = doc.getString("tenantId");
+                    String invTenantEmail = doc.getString("tenantEmail");
+                    String invTenantName = doc.getString("tenantName");
+                    String invRoomName = doc.getString("roomName");
+                    String invRoomId = doc.getString("roomId");
+
+                    // Khớp UID
+                    if (invTenantId != null && invTenantId.equals(uid)) {
+                        matchedDoc = doc;
+                        break;
+                    }
+                    // Khớp Email
+                    if (!email.isEmpty() && invTenantEmail != null && invTenantEmail.equalsIgnoreCase(email)) {
+                        matchedDoc = doc;
+                        break;
+                    }
+                    // Khớp Họ tên
+                    if (!fullName.isEmpty() && invTenantName != null && invTenantName.equalsIgnoreCase(fullName)) {
+                        matchedDoc = doc;
+                        break;
+                    }
+                    // Khớp Tên phòng
+                    if (!userRoomName.isEmpty() && invRoomName != null && invRoomName.equalsIgnoreCase(userRoomName)) {
+                        matchedDoc = doc;
+                        break;
+                    }
+                    // Khớp Room ID
+                    if (!userRoomId.isEmpty() && invRoomId != null && invRoomId.equalsIgnoreCase(userRoomId)) {
+                        matchedDoc = doc;
+                        break;
+                    }
+                }
+
+                if (matchedDoc != null) {
+                    openTenantInvoiceDetail(matchedDoc);
+                } else {
+                    // Tiếp tục tìm phòng của người thuê trong collection "rooms" để tìm đúng hóa đơn phòng đó
+                    checkRoomsAndFindInvoice(uid, email, fullName);
+                }
+            }).addOnFailureListener(e ->
+                    Toast.makeText(this, "Bạn chưa có hóa đơn thanh toán nào!", Toast.LENGTH_SHORT).show()
+            );
+        }).addOnFailureListener(e ->
+                Toast.makeText(this, "Bạn chưa có hóa đơn thanh toán nào!", Toast.LENGTH_SHORT).show()
+        );
+    }
+
+    private void checkRoomsAndFindInvoice(String uid, String email, String fullName) {
+        db.collection("rooms").get().addOnSuccessListener(roomsSnapshot -> {
+            String rentedRoomName = "";
+            String rentedRoomId = "";
+
+            for (DocumentSnapshot roomDoc : roomsSnapshot.getDocuments()) {
+                String rTenantId = roomDoc.getString("tenantId");
+                String rTenantEmail = roomDoc.getString("tenantEmail");
+                String rTenantName = roomDoc.getString("tenantName");
+
+                if ((rTenantId != null && rTenantId.equals(uid)) ||
+                        (!email.isEmpty() && rTenantEmail != null && rTenantEmail.equalsIgnoreCase(email)) ||
+                        (!fullName.isEmpty() && rTenantName != null && rTenantName.equalsIgnoreCase(fullName))) {
+                    rentedRoomId = roomDoc.getId();
+                    rentedRoomName = roomDoc.getString("roomName");
+                    if (rentedRoomName == null) rentedRoomName = roomDoc.getString("name");
+                    break;
+                }
+            }
+
+            final String finalRoomName = rentedRoomName != null ? rentedRoomName.trim() : "";
+            final String finalRoomId = rentedRoomId;
+
+            if (!finalRoomName.isEmpty() || !finalRoomId.isEmpty()) {
+                db.collection("invoices").get().addOnSuccessListener(invSnapshot -> {
+                    DocumentSnapshot foundDoc = null;
+                    for (DocumentSnapshot doc : invSnapshot.getDocuments()) {
+                        String invRoomName = doc.getString("roomName");
+                        String invRoomId = doc.getString("roomId");
+
+                        if (!finalRoomName.isEmpty() && invRoomName != null && invRoomName.equalsIgnoreCase(finalRoomName)) {
+                            foundDoc = doc;
+                            break;
+                        }
+                        if (!finalRoomId.isEmpty() && invRoomId != null && invRoomId.equalsIgnoreCase(finalRoomId)) {
+                            foundDoc = doc;
+                            break;
+                        }
+                    }
+
+                    if (foundDoc != null) {
+                        openTenantInvoiceDetail(foundDoc);
+                    } else {
+                        Toast.makeText(this, "Bạn chưa có hóa đơn thanh toán nào!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(this, "Bạn chưa có hóa đơn thanh toán nào!", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e ->
+                Toast.makeText(this, "Bạn chưa có hóa đơn thanh toán nào!", Toast.LENGTH_SHORT).show()
+        );
+    }
+
+    private void openTenantInvoiceDetail(DocumentSnapshot doc) {
+        Invoice invoice = doc.toObject(Invoice.class);
+        if (invoice != null) {
+            invoice.setId(doc.getId());
+            Intent intent = new Intent(SettingsActivity.this, TenantInvoiceDetailActivity.class);
+            intent.putExtra(TenantInvoiceDetailActivity.EXTRA_INVOICE, invoice);
+            startActivity(intent);
+            finish();
         }
     }
 
@@ -207,12 +357,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void performLogout() {
-        // Thực hiện đăng xuất tài khoản Firebase
         mAuth.signOut();
-
         Toast.makeText(SettingsActivity.this, "Đã đăng xuất thành công!", Toast.LENGTH_SHORT).show();
-
-        // Chuyển về màn hình đăng nhập và dọn dẹp toàn bộ task stack
         Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

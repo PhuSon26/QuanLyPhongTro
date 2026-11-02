@@ -46,7 +46,17 @@
         <activity
             android:name=".ui.home.TenantHomeActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.invoice.InvoiceListActivity"
+            android:exported="false" />
 
+        <activity
+            android:name=".ui.invoice.AddEditInvoiceActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.invoice.TenantInvoiceDetailActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.room.LandlordRoomListActivity"
             android:exported="false" />

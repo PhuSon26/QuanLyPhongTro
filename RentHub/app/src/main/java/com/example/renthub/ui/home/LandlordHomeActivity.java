@@ -38,7 +38,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
     private ImageButton btnHomeNotification;
 
     // THỐNG KÊ
-    private TextView tvStat1, tvStat2, tvStat3;
+    private TextView tvStat1, tvStat2, tvStat3, tvStat4;
 
     // YÊU CẦU THUÊ PHÒNG CHỜ DUYỆT
     private View layoutLandlordRequestsSection;
@@ -82,6 +82,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
         tvStat1 = findViewById(R.id.tvStat1);
         tvStat2 = findViewById(R.id.tvStat2);
         tvStat3 = findViewById(R.id.tvStat3);
+        tvStat4 = findViewById(R.id.tvStat4);
 
         // Ánh xạ khu vực yêu cầu thuê phòng cần duyệt
         layoutLandlordRequestsSection = findViewById(R.id.layoutLandlordRequestsSection);
@@ -160,13 +161,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
-        View btnNavIssues = findViewById(R.id.btnNavIssue);
-        if (btnNavIssues != null) {
-            btnNavIssues.setOnClickListener(v -> {
-                Intent intent = new Intent(LandlordHomeActivity.this, IssueListActivity.class);
-                startActivity(intent);
-            });
-        }
+
     }
 
     private void loadDashboardData() {

@@ -145,8 +145,14 @@ public class LandlordHomeActivity extends AppCompatActivity {
                 }
             });
         }
-
-        View btnNavIssues = findViewById(R.id.btnNavIssues);
+        View btnNavInvoice = findViewById(R.id.btnNavInvoice);
+        if (btnNavInvoice != null) {
+            btnNavInvoice.setOnClickListener(v -> {
+                Intent intent = new Intent(LandlordHomeActivity.this, InvoiceListActivity.class);
+                startActivity(intent);
+            });
+        }
+        View btnNavIssues = findViewById(R.id.btnNavIssue);
         if (btnNavIssues != null) {
             btnNavIssues.setOnClickListener(v -> {
                 Intent intent = new Intent(LandlordHomeActivity.this, com.example.renthub.ui.issue.IssueListActivity.class);

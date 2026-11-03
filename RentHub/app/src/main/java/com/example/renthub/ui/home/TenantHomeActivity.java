@@ -39,6 +39,8 @@ public class TenantHomeActivity extends AppCompatActivity {
     private TextView tvEmptyAvailableRooms;
     private RoomAdapter roomAdapter;
     private final List<Room> availableRoomList = new ArrayList<>();
+    private final ArrayList<String> rentedRoomIds = new ArrayList<>();
+    private final ArrayList<String> rentedRoomNames = new ArrayList<>();
 
     private View layoutRentalRequestsSection;
     private RecyclerView rvMyRentalRequests;
@@ -83,11 +85,11 @@ public class TenantHomeActivity extends AppCompatActivity {
         layoutRentalRequestsSection = findViewById(R.id.layoutRentalRequestsSection);
         rvMyRentalRequests = findViewById(R.id.rvMyRentalRequests);
 
+        // Ẩn thẻ phòng tĩnh số 2 trong giao diện gốc của chủ trọ
         if (cardRecentRoom2 != null) {
             cardRecentRoom2.setVisibility(View.GONE);
         }
 
-        // Ẩn thẻ thống kê thứ 4 (Bảo trì) không dùng đến ở giao diện Người thuê
         View cardStat4 = findViewById(R.id.cardStat4);
         View spaceStat4 = findViewById(R.id.spaceStat4);
         if (cardStat4 != null) cardStat4.setVisibility(View.GONE);
@@ -97,6 +99,7 @@ public class TenantHomeActivity extends AppCompatActivity {
     private void setupTenantUI() {
         setText(R.id.tvHomeRole, "NGƯỜI THUÊ");
 
+        // Hiển thị tên người dùng nếu có truyền từ Intent hoặc Firebase
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("FULL_NAME")) {
             String fullName = intent.getStringExtra("FULL_NAME");
@@ -157,6 +160,7 @@ public class TenantHomeActivity extends AppCompatActivity {
     private void setupRoomRecyclerView() {
         if (recyclerViewAvailableRooms != null) {
             recyclerViewAvailableRooms.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+            // isLandlord = false để người thuê không nhìn thấy nút Xóa phòng
             roomAdapter = new RoomAdapter(availableRoomList, false, new RoomAdapter.OnRoomActionListener() {
                 @Override
                 public void onView(Room room) {
@@ -167,6 +171,7 @@ public class TenantHomeActivity extends AppCompatActivity {
 
                 @Override
                 public void onDelete(Room room) {
+                    // Người thuê không có quyền xoá phòng
                 }
             });
             recyclerViewAvailableRooms.setAdapter(roomAdapter);
@@ -175,6 +180,7 @@ public class TenantHomeActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
+        // Nút hoặc thẻ "Phòng của tôi"
         View.OnClickListener openMyRoomListener = v -> {
             if (myRentedRoom != null) {
                 Intent intent = new Intent(TenantHomeActivity.this, RoomDetailActivity.class);
@@ -198,12 +204,33 @@ public class TenantHomeActivity extends AppCompatActivity {
             btnNavInvoice.setOnClickListener(v -> loadTenantInvoiceAndNavigate());
         }
 
+        // Bắt sự kiện menu bottom nav: Chuyển sang màn hình Cài đặt & Tài khoản
         View btnNavSettings = findViewById(R.id.btnNavSettings);
         if (btnNavSettings != null) {
             btnNavSettings.setOnClickListener(v -> {
                 Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.settings.SettingsActivity.class);
                 startActivity(intent);
             });
+        }
+
+        // Tạo Listener mở màn hình Sự cố truyền kèm danh sách ID + Tên phòng
+        View.OnClickListener openIssueListener = v -> {
+            Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.issue.IssueListActivity.class);
+            intent.putStringArrayListExtra("EXTRA_ROOM_IDS", rentedRoomIds);
+            intent.putStringArrayListExtra("EXTRA_ROOM_NAMES", rentedRoomNames);
+            startActivity(intent);
+        };
+
+
+        View cardIssue = findViewById(R.id.btnNavIssue);
+        if (cardIssue != null) {
+            cardIssue.setOnClickListener(openIssueListener);
+        }
+
+        // Gán sự kiện click cho thẻ Thống kê Sự cố ở giữa Dashboard
+        View cardStat3 = findViewById(R.id.cardStat3);
+        if (cardStat3 != null) {
+            cardStat3.setOnClickListener(openIssueListener);
         }
     }
 
@@ -267,6 +294,7 @@ public class TenantHomeActivity extends AppCompatActivity {
 
         String currentUserId = currentUser.getUid();
 
+        // 1. Tìm phòng theo tenantId và cập nhật chính xác số lượng phòng đã thuê
         db.collection("rooms")
                 .whereEqualTo("tenantId", currentUserId)
                 .get()
@@ -274,7 +302,21 @@ public class TenantHomeActivity extends AppCompatActivity {
                     int rentedCount = queryDocumentSnapshots.size();
                     setText(R.id.tvStat1, String.format(java.util.Locale.getDefault(), "%02d", rentedCount));
 
+                    // Đã bổ sung: Làm sạch và nạp lại danh sách ID/Tên phòng
+                    rentedRoomIds.clear();
+                    rentedRoomNames.clear();
+
                     if (!queryDocumentSnapshots.isEmpty()) {
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Room room = doc.toObject(Room.class);
+                            if (room != null) {
+                                String rId = doc.getId();
+                                String rName = room.getName() != null ? room.getName() : "Phòng " + rId;
+                                rentedRoomIds.add(rId);
+                                rentedRoomNames.add(rName);
+                            }
+                        }
+
                         DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
                         myRentedRoom = doc.toObject(Room.class);
                         if (myRentedRoom != null) {
@@ -331,6 +373,7 @@ public class TenantHomeActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    // Xử lý khi lỗi hoặc không thể tải danh sách yêu cầu
                 });
     }
 
@@ -348,6 +391,7 @@ public class TenantHomeActivity extends AppCompatActivity {
                             String status = room.getStatus() != null ? room.getStatus().toLowerCase() : "";
                             boolean isAvailable = status.contains("trống") || (!status.contains("thuê") && !room.isFull());
 
+                            // Chỉ thêm các phòng còn trống vào danh sách gợi ý cho người thuê
                             if (isAvailable) {
                                 availableRoomList.add(room);
                             }

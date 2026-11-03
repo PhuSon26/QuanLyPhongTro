@@ -73,11 +73,13 @@
             android:exported="true" />
 
         <activity
-            android:name=".ui.landlord.LandlordMainActivity"
+            android:name=".ui.issue.IssueListActivity"
             android:exported="false" />
-
         <activity
-            android:name=".ui.tenant.TenantMainActivity"
+            android:name=".ui.issue.IssueDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.issue.CreateIssueActivity"
             android:exported="false" />
         <activity
             android:name=".ui.settings.SettingsActivity"

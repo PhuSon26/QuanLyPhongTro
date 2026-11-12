@@ -113,6 +113,10 @@ public class IssueListActivity extends AppCompatActivity {
     private void getIntentExtras() {
         Intent intent = getIntent();
         if (intent != null) {
+            if (intent.hasExtra("USER_ROLE")) {
+                String roleExtra = intent.getStringExtra("USER_ROLE");
+                isLandlord = "LANDLORD".equalsIgnoreCase(roleExtra);
+            }
             if (intent.hasExtra("EXTRA_ROOM_IDS")) {
                 extraRoomIds = intent.getStringArrayListExtra("EXTRA_ROOM_IDS");
             }
@@ -209,8 +213,24 @@ public class IssueListActivity extends AppCompatActivity {
     private void setupListeners() {
         fabAddIssue.setOnClickListener(v -> {
             Intent intent = new Intent(IssueListActivity.this, CreateIssueActivity.class);
-            intent.putStringArrayListExtra("EXTRA_ROOM_IDS", extraRoomIds);
-            intent.putStringArrayListExtra("EXTRA_ROOM_NAMES", extraRoomNames);
+            ArrayList<String> rIds = new ArrayList<>();
+            ArrayList<String> rNames = new ArrayList<>();
+
+            // Ưu tiên nạp danh sách phòng từ roomNamesMap đã nạp thành công từ Firestore
+            if (roomNamesMap != null && !roomNamesMap.isEmpty()) {
+                for (java.util.Map.Entry<String, String> entry : roomNamesMap.entrySet()) {
+                    rIds.add(entry.getKey());
+                    rNames.add(entry.getValue());
+                }
+            } else if (extraRoomIds != null && extraRoomNames != null && !extraRoomIds.isEmpty() && extraRoomIds.size() == extraRoomNames.size()) {
+                rIds.addAll(extraRoomIds);
+                rNames.addAll(extraRoomNames);
+            }
+
+            if (!rIds.isEmpty()) {
+                intent.putStringArrayListExtra("EXTRA_ROOM_IDS", rIds);
+                intent.putStringArrayListExtra("EXTRA_ROOM_NAMES", rNames);
+            }
             startActivity(intent);
         });
     }
@@ -221,32 +241,40 @@ public class IssueListActivity extends AppCompatActivity {
     private void checkUserRoleAndLoadData() {
         pbLoading.setVisibility(View.VISIBLE);
 
+        if (getIntent().hasExtra("USER_ROLE")) {
+            applyRoleAndLoadData();
+        }
+
         db.collection("users").document(currentUserId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String role = documentSnapshot.getString("role");
-                    isLandlord = role != null && (role.equalsIgnoreCase("LANDLORD")
+                    boolean detectedLandlord = role != null && (role.equalsIgnoreCase("LANDLORD")
                             || role.equalsIgnoreCase("CHỦ TRỌ")
                             || role.toLowerCase().contains("chủ"));
 
-                    if (isLandlord) {
-                        toolbar.setTitle("Quản lý sự cố phòng trọ");
-                        fabAddIssue.setVisibility(View.GONE);
-                        // Chủ trọ: Chỉ tải các phòng do Chủ trọ này quản lý trước
-                        loadManagedRoomsForLandlord();
-                    } else {
-                        toolbar.setTitle("Theo dõi sự cố đã báo");
-                        fabAddIssue.setVisibility(View.VISIBLE);
-                        // Người thuê: Tải phòng người thuê đang ở và các sự cố của chính mình
-                        loadRentedRoomsForTenant();
+                    if (!getIntent().hasExtra("USER_ROLE") || isLandlord != detectedLandlord) {
+                        isLandlord = detectedLandlord;
+                        applyRoleAndLoadData();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Mặc định an toàn cho người thuê nếu lỗi tải role
-                    isLandlord = false;
-                    toolbar.setTitle("Theo dõi sự cố đã báo");
-                    fabAddIssue.setVisibility(View.VISIBLE);
-                    loadRentedRoomsForTenant();
+                    if (!getIntent().hasExtra("USER_ROLE")) {
+                        isLandlord = false;
+                        applyRoleAndLoadData();
+                    }
                 });
+    }
+
+    private void applyRoleAndLoadData() {
+        if (isLandlord) {
+            toolbar.setTitle("Quản lý sự cố phòng trọ");
+            fabAddIssue.setVisibility(View.GONE);
+            loadManagedRoomsForLandlord();
+        } else {
+            toolbar.setTitle("Theo dõi sự cố đã báo");
+            fabAddIssue.setVisibility(View.VISIBLE);
+            loadRentedRoomsForTenant();
+        }
     }
 
     /**
@@ -307,11 +335,17 @@ public class IssueListActivity extends AppCompatActivity {
         pbLoading.setVisibility(View.VISIBLE);
 
         // Firestore hỗ trợ whereIn tối đa 30 phần tử
+        if (myManagedRoomIds.isEmpty()) {
+            pbLoading.setVisibility(View.GONE);
+            rawIssueList.clear();
+            applyFilterAndSort();
+            return;
+        }
+
         if (myManagedRoomIds.size() <= 30) {
             List<String> roomList = new ArrayList<>(myManagedRoomIds);
             issueListener = db.collection("issues")
                     .whereIn("roomId", roomList)
-                    .orderBy("createdAt", Query.Direction.DESCENDING)
                     .addSnapshotListener((value, error) -> {
                         pbLoading.setVisibility(View.GONE);
 
@@ -353,7 +387,6 @@ public class IssueListActivity extends AppCompatActivity {
         } else {
             // Khi chủ trọ quản lý hơn 30 phòng: Lắng nghe toàn bộ sự cố và lọc chính xác phía ứng dụng
             issueListener = db.collection("issues")
-                    .orderBy("createdAt", Query.Direction.DESCENDING)
                     .addSnapshotListener((value, error) -> {
                         pbLoading.setVisibility(View.GONE);
 
@@ -434,7 +467,6 @@ public class IssueListActivity extends AppCompatActivity {
 
         issueListener = db.collection("issues")
                 .whereEqualTo("tenantId", currentUserId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     pbLoading.setVisibility(View.GONE);
 

@@ -80,6 +80,22 @@ public class TenantInvoiceDetailActivity extends AppCompatActivity {
             btnNavRoom.setOnClickListener(v -> finish());
         }
 
+        View btnNavIssue = findViewById(R.id.btnNavIssue);
+        if (btnNavIssue != null) {
+            btnNavIssue.setOnClickListener(v -> {
+                startActivity(new Intent(TenantInvoiceDetailActivity.this, com.example.renthub.ui.issue.IssueListActivity.class));
+                finish();
+            });
+        }
+
+        View btnNavNews = findViewById(R.id.btnNavNews);
+        if (btnNavNews != null) {
+            btnNavNews.setOnClickListener(v -> {
+                startActivity(new Intent(TenantInvoiceDetailActivity.this, com.example.renthub.ui.community.CommunityActivity.class));
+                finish();
+            });
+        }
+
         View btnNavSettings = findViewById(R.id.btnNavSettings);
         if (btnNavSettings != null) {
             btnNavSettings.setOnClickListener(v -> {

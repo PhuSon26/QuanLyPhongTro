@@ -102,6 +102,16 @@ public class InvoiceListActivity extends AppCompatActivity {
                             Toast.makeText(InvoiceListActivity.this, "Đã xóa hóa đơn!", Toast.LENGTH_SHORT).show();
                         });
             }
+
+            @Override
+            public void onRemindClick(Invoice invoice) {
+                com.example.renthub.ui.notification.NotificationHelper.sendInvoiceReminderNotification(
+                        InvoiceListActivity.this,
+                        invoice.getTenantId(),
+                        invoice
+                );
+                Toast.makeText(InvoiceListActivity.this, "Đã gửi thông báo nhắc tiền phòng đến người thuê!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         rvInvoices.setLayoutManager(new LinearLayoutManager(this));
@@ -125,6 +135,22 @@ public class InvoiceListActivity extends AppCompatActivity {
         View btnNavRoom = findViewById(R.id.btnNavRoom);
         if (btnNavRoom != null) {
             btnNavRoom.setOnClickListener(v -> finish());
+        }
+
+        View btnNavIssue = findViewById(R.id.btnNavIssue);
+        if (btnNavIssue != null) {
+            btnNavIssue.setOnClickListener(v -> {
+                startActivity(new Intent(InvoiceListActivity.this, com.example.renthub.ui.issue.IssueListActivity.class));
+                finish();
+            });
+        }
+
+        View btnNavNews = findViewById(R.id.btnNavNews);
+        if (btnNavNews != null) {
+            btnNavNews.setOnClickListener(v -> {
+                startActivity(new Intent(InvoiceListActivity.this, com.example.renthub.ui.community.CommunityActivity.class));
+                finish();
+            });
         }
 
         View btnNavSettings = findViewById(R.id.btnNavSettings);

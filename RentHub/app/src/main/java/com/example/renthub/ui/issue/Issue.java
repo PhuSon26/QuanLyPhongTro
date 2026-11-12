@@ -60,6 +60,8 @@ public class Issue {
     // Getter và Setter cho các trường
     public String getIssueId() { return issueId; }
     public void setIssueId(String issueId) { this.issueId = issueId; }
+    public String getId() { return issueId; }
+    public void setId(String id) { this.issueId = id; }
 
     public String getRoomId() { return roomId; }
     public void setRoomId(String roomId) { this.roomId = roomId; }
@@ -86,7 +88,15 @@ public class Issue {
     public void setStatus(String status) { this.status = status; }
 
     public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public void setCreatedAt(Object createdAt) {
+        if (createdAt instanceof Timestamp) {
+            this.createdAt = (Timestamp) createdAt;
+        } else if (createdAt instanceof Number) {
+            this.createdAt = new Timestamp(new java.util.Date(((Number) createdAt).longValue()));
+        } else if (createdAt instanceof java.util.Date) {
+            this.createdAt = new Timestamp((java.util.Date) createdAt);
+        }
+    }
 
     public String getLandlordNote() { return landlordNote; }
     public void setLandlordNote(String landlordNote) { this.landlordNote = landlordNote; }

@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.renthub.R;
+import com.example.renthub.ui.notification.NotificationHelper;
 import com.example.renthub.ui.room.Room;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -204,10 +205,22 @@ public class AddEditInvoiceActivity extends AppCompatActivity {
         Invoice invoice = (editingInvoice != null) ? editingInvoice : new Invoice();
 
         // Cập nhật thông tin phòng
+        if (selectedRoom == null && roomList != null) {
+            for (Room r : roomList) {
+                if (r.getName() != null && r.getName().equalsIgnoreCase(roomNameInput)) {
+                    selectedRoom = r;
+                    break;
+                }
+            }
+        }
+
         if (selectedRoom != null) {
             invoice.setRoomId(selectedRoom.getId());
             invoice.setRoomName(selectedRoom.getName());
             invoice.setTenantName(selectedRoom.getTenantName());
+            if (selectedRoom.getTenantId() != null && !selectedRoom.getTenantId().trim().isEmpty()) {
+                invoice.setTenantId(selectedRoom.getTenantId().trim());
+            }
         } else {
             invoice.setRoomName(roomNameInput);
         }
@@ -233,6 +246,15 @@ public class AddEditInvoiceActivity extends AppCompatActivity {
 
             db.collection("invoices").add(invoice)
                     .addOnSuccessListener(ref -> {
+                        invoice.setId(ref.getId());
+
+                        // Gửi thông báo đến người thuê của phòng (kèm fallback thông minh trong NotificationHelper)
+                        String targetTenantId = (selectedRoom != null && selectedRoom.getTenantId() != null)
+                                ? selectedRoom.getTenantId().trim()
+                                : invoice.getTenantId();
+
+                        NotificationHelper.sendNewInvoiceNotification(AddEditInvoiceActivity.this, targetTenantId, invoice);
+
                         Toast.makeText(this, "Tạo hóa đơn thành công!", Toast.LENGTH_SHORT).show();
                         finish();
                     })

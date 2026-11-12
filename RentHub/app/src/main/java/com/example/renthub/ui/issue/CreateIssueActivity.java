@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.renthub.R;
+import com.example.renthub.ui.notification.NotificationHelper;
 import com.example.renthub.ui.room.Room;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -49,6 +50,7 @@ public class CreateIssueActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private String currentTenantId;
+    private String currentTenantName = "Người thuê";
     private String selectedRoomId = "";
 
     // Trình khởi chạy để chọn ảnh từ thư viện
@@ -77,6 +79,14 @@ public class CreateIssueActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             currentTenantId = currentUser.getUid();
+            if (currentUser.getDisplayName() != null && !currentUser.getDisplayName().isEmpty()) {
+                currentTenantName = currentUser.getDisplayName();
+            }
+            db.collection("users").document(currentTenantId).get().addOnSuccessListener(userDoc -> {
+                if (userDoc.exists() && userDoc.getString("fullName") != null && !userDoc.getString("fullName").isEmpty()) {
+                    currentTenantName = userDoc.getString("fullName");
+                }
+            });
         } else {
             Toast.makeText(this, "Vui lòng đăng nhập lại!", Toast.LENGTH_SHORT).show();
             finish();
@@ -124,21 +134,25 @@ public class CreateIssueActivity extends AppCompatActivity {
 
     private void setupRoomDropdown() {
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("EXTRA_ROOM_IDS")) {
+        if (intent != null && intent.hasExtra("EXTRA_ROOM_IDS") && intent.hasExtra("EXTRA_ROOM_NAMES")) {
             ArrayList<String> roomIds = intent.getStringArrayListExtra("EXTRA_ROOM_IDS");
             ArrayList<String> roomNames = intent.getStringArrayListExtra("EXTRA_ROOM_NAMES");
 
-            if (roomIds != null && roomNames != null && !roomIds.isEmpty()) {
+            if (roomIds != null && roomNames != null && !roomIds.isEmpty() && roomIds.size() == roomNames.size()) {
                 populateRoomDropdown(roomIds, roomNames);
-                return; // Nếu đã có dữ liệu từ Intent thì dừng lại, KHÔNG gọi Firestore nữa
+                return; // Nếu đã có dữ liệu hợp lệ từ Intent thì dừng lại, KHÔNG gọi Firestore nữa
             }
         }
 
-        // Chỉ khi Intent rỗng mới fallback tự tải từ Firestore
+        // Chỉ khi Intent rỗng hoặc dữ liệu không hợp lệ mới fallback tự tải từ Firestore
         loadRentedRoomsFromFirestore();
     }
 
     private void populateRoomDropdown(List<String> roomIds, List<String> roomNames) {
+        if (roomIds == null || roomNames == null || roomIds.isEmpty() || roomNames.isEmpty()) {
+            return;
+        }
+
         ArrayAdapter<String> roomAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, roomNames);
         actvRoom.setAdapter(roomAdapter);
 
@@ -148,7 +162,9 @@ public class CreateIssueActivity extends AppCompatActivity {
 
         // Cập nhật selectedRoomId khi người dùng đổi lựa chọn
         actvRoom.setOnItemClickListener((parent, view, position, id) -> {
-            selectedRoomId = roomIds.get(position);
+            if (position >= 0 && position < roomIds.size()) {
+                selectedRoomId = roomIds.get(position);
+            }
         });
     }
 
@@ -235,10 +251,15 @@ public class CreateIssueActivity extends AppCompatActivity {
         db.collection("rooms").document(roomId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String landlordId = "";
+                    String roomName = "Phòng " + roomId;
                     if (documentSnapshot.exists()) {
                         landlordId = documentSnapshot.getString("landlordId");
                         if (landlordId == null) landlordId = "";
+                        String rName = documentSnapshot.getString("name");
+                        if (rName != null && !rName.isEmpty()) roomName = rName;
                     }
+
+                    final String finalRoomName = roomName;
 
                     Issue newIssue = new Issue(
                             issueId, roomId, tenantId, landlordId, type, title, description, imageUrl,
@@ -250,6 +271,9 @@ public class CreateIssueActivity extends AppCompatActivity {
 
                     db.collection("issues").document(issueId).set(newIssue)
                             .addOnSuccessListener(aVoid -> {
+                                // Gửi thông báo đến Chủ trọ
+                                NotificationHelper.sendNewIssueNotification(CreateIssueActivity.this, newIssue, finalRoomName, currentTenantName);
+
                                 if (pbSubmitting != null) pbSubmitting.setVisibility(View.GONE);
                                 Toast.makeText(this, "Gửi báo cáo thành công!", Toast.LENGTH_SHORT).show();
                                 finish();

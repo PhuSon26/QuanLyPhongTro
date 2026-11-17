@@ -25,6 +25,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
         void onItemClick(Invoice invoice);
         void onTogglePaidStatus(Invoice invoice);
         void onDeleteClick(Invoice invoice);
+        void onRemindClick(Invoice invoice);
     }
 
     public InvoiceAdapter(List<Invoice> list, OnInvoiceClickListener listener) {
@@ -68,11 +69,17 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
             holder.tvStatus.setTextColor(Color.parseColor("#148369"));
             holder.cardStatus.setCardBackgroundColor(Color.parseColor("#E2F5EA"));
             holder.btnToggleStatus.setText("Đánh dấu Chưa thu");
+            if (holder.btnRemind != null) {
+                holder.btnRemind.setVisibility(View.GONE);
+            }
         } else {
             holder.tvStatus.setText("Chưa thanh toán");
             holder.tvStatus.setTextColor(Color.parseColor("#C74444"));
             holder.cardStatus.setCardBackgroundColor(Color.parseColor("#FCECEC"));
             holder.btnToggleStatus.setText("Xác nhận Đã thu tiền");
+            if (holder.btnRemind != null) {
+                holder.btnRemind.setVisibility(View.VISIBLE);
+            }
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -86,6 +93,12 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) listener.onDeleteClick(inv);
         });
+
+        if (holder.btnRemind != null) {
+            holder.btnRemind.setOnClickListener(v -> {
+                if (listener != null) listener.onRemindClick(inv);
+            });
+        }
     }
 
     @Override
@@ -96,7 +109,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvRoomName, tvMonthYear, tvTotalAmount, tvStatus;
         MaterialCardView cardStatus;
-        MaterialButton btnToggleStatus, btnDelete;
+        MaterialButton btnToggleStatus, btnRemind, btnDelete;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -106,6 +119,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
             tvStatus = itemView.findViewById(R.id.tvStatus);
             cardStatus = itemView.findViewById(R.id.cardStatus);
             btnToggleStatus = itemView.findViewById(R.id.btnToggleStatus);
+            btnRemind = itemView.findViewById(R.id.btnRemind);
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }

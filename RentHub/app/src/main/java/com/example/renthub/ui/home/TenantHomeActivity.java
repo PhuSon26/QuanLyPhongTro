@@ -52,6 +52,11 @@ public class TenantHomeActivity extends AppCompatActivity {
     private MaterialButton btnHomeViewRooms;
     private Room myRentedRoom;
 
+    private View badgeHomeNotificationDot;
+    private android.widget.ImageButton btnHomeNotification;
+    private com.google.firebase.firestore.ListenerRegistration notificationListener;
+    private boolean isFirstNotifLoad = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +70,15 @@ public class TenantHomeActivity extends AppCompatActivity {
         setupRentalRequestsRecyclerView();
         setupRoomRecyclerView();
         setupListeners();
+        requestNotificationPermission();
+    }
+
+    private void requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
     }
 
     @Override
@@ -73,11 +87,68 @@ public class TenantHomeActivity extends AppCompatActivity {
         loadMyRentedRoomInfo();
         loadMyRentalRequests();
         loadAvailableRoomsFromFirebase();
+        listenToTenantNotifications();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
+
+    private void listenToTenantNotifications() {
+        if (auth.getCurrentUser() == null) return;
+        String uid = auth.getCurrentUser().getUid();
+
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+
+        notificationListener = db.collection("notifications")
+                .whereEqualTo("receiverId", uid)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null || snapshots == null) return;
+
+                    int unreadCount = 0;
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        Boolean read = doc.getBoolean("read");
+                        if (read == null || !read) {
+                            unreadCount++;
+                        }
+                    }
+
+                    if (badgeHomeNotificationDot != null) {
+                        badgeHomeNotificationDot.setVisibility(unreadCount > 0 ? View.VISIBLE : View.GONE);
+                    }
+                    if (btnHomeNotification != null) {
+                        btnHomeNotification.setColorFilter(unreadCount > 0 ? Color.parseColor("#E53935") : Color.parseColor("#14344B"));
+                    }
+
+                    if (!isFirstNotifLoad) {
+                        for (com.google.firebase.firestore.DocumentChange dc : snapshots.getDocumentChanges()) {
+                            if (dc.getType() == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
+                                try {
+                                    com.example.renthub.ui.notification.NotificationModel notif = dc.getDocument().toObject(com.example.renthub.ui.notification.NotificationModel.class);
+                                    if (notif != null && !notif.isRead()) {
+                                        Toast.makeText(TenantHomeActivity.this, "🔔 " + notif.getTitle() + "\n" + notif.getBody(), Toast.LENGTH_LONG).show();
+                                    }
+                                } catch (Exception ex) {
+                                    android.util.Log.e("TenantHome", "Lỗi nạp thông báo", ex);
+                                }
+                            }
+                        }
+                    }
+                    isFirstNotifLoad = false;
+                });
     }
 
     private void initViews() {
         cardRecentRoom1 = findViewById(R.id.cardRecentRoom1);
         cardRecentRoom2 = findViewById(R.id.cardRecentRoom2);
+        btnHomeNotification = findViewById(R.id.btnHomeNotification);
+        badgeHomeNotificationDot = findViewById(R.id.badgeHomeNotificationDot);
         btnHomeViewRooms = findViewById(R.id.btnHomeViewRooms);
         recyclerViewAvailableRooms = findViewById(R.id.recyclerViewAvailableRooms);
         tvEmptyAvailableRooms = findViewById(R.id.tvEmptyAvailableRooms);
@@ -199,9 +270,26 @@ public class TenantHomeActivity extends AppCompatActivity {
             cardRecentRoom1.setOnClickListener(openMyRoomListener);
         }
 
+        View btnHomeNotification = findViewById(R.id.btnHomeNotification);
+        if (btnHomeNotification != null) {
+            btnHomeNotification.setOnClickListener(v -> {
+                Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.notification.NotificationActivity.class);
+                startActivity(intent);
+            });
+        }
+
         View btnNavInvoice = findViewById(R.id.btnNavInvoice);
         if (btnNavInvoice != null) {
             btnNavInvoice.setOnClickListener(v -> loadTenantInvoiceAndNavigate());
+        }
+
+        View btnNavNews = findViewById(R.id.btnNavNews);
+        if (btnNavNews != null) {
+            btnNavNews.setOnClickListener(v -> {
+                Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.community.CommunityActivity.class);
+                intent.putExtra("USER_ROLE", "TENANT");
+                startActivity(intent);
+            });
         }
 
         // Bắt sự kiện menu bottom nav: Chuyển sang màn hình Cài đặt & Tài khoản
@@ -216,6 +304,7 @@ public class TenantHomeActivity extends AppCompatActivity {
         // Tạo Listener mở màn hình Sự cố truyền kèm danh sách ID + Tên phòng
         View.OnClickListener openIssueListener = v -> {
             Intent intent = new Intent(TenantHomeActivity.this, com.example.renthub.ui.issue.IssueListActivity.class);
+            intent.putExtra("USER_ROLE", "TENANT");
             intent.putStringArrayListExtra("EXTRA_ROOM_IDS", rentedRoomIds);
             intent.putStringArrayListExtra("EXTRA_ROOM_NAMES", rentedRoomNames);
             startActivity(intent);

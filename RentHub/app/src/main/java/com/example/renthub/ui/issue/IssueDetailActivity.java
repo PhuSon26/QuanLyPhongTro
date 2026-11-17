@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.renthub.R;
+import com.example.renthub.ui.notification.NotificationHelper;
 import com.example.renthub.ui.room.Room;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -449,10 +450,9 @@ public class IssueDetailActivity extends AppCompatActivity {
 
         // 1. Lấy trạng thái được chọn từ Spinner
         int selectedPosition = spinnerUpdateStatus.getSelectedItemPosition();
-        String selectedStatusCode = "PENDING";
-        if (selectedPosition >= 0 && selectedPosition < statusCodeMapping.length) {
-            selectedStatusCode = statusCodeMapping[selectedPosition];
-        }
+        final String selectedStatusCode = (selectedPosition >= 0 && selectedPosition < statusCodeMapping.length)
+                ? statusCodeMapping[selectedPosition]
+                : "PENDING";
 
         // 2. Lấy ghi chú phản hồi từ EditText
         String replyNote = edtLandlordReply.getText() != null ? edtLandlordReply.getText().toString().trim() : "";
@@ -472,6 +472,18 @@ public class IssueDetailActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     pbUpdating.setVisibility(View.GONE);
                     btnSaveUpdate.setEnabled(true);
+
+                    // Gửi thông báo đến Người thuê
+                    if (currentIssue != null && currentIssue.getTenantId() != null && !currentIssue.getTenantId().trim().isEmpty()) {
+                        NotificationHelper.sendIssueStatusUpdateNotification(
+                                IssueDetailActivity.this,
+                                currentIssue.getTenantId().trim(),
+                                currentIssue,
+                                selectedStatusCode,
+                                replyNote
+                        );
+                    }
+
                     Toast.makeText(IssueDetailActivity.this, "Cập nhật sự cố thành công! Người thuê sẽ thấy thay đổi ngay lập tức.", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {

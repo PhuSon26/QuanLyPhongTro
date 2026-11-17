@@ -7,6 +7,7 @@ public class Invoice implements Serializable {
     private String roomId;
     private String roomName;
     private String landlordId;
+    private String tenantId;
     private String tenantName;
     private String monthYear;
     private double roomPrice;
@@ -33,6 +34,9 @@ public class Invoice implements Serializable {
 
     public String getLandlordId() { return landlordId; }
     public void setLandlordId(String landlordId) { this.landlordId = landlordId; }
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 
     public String getTenantName() { return tenantName; }
     public void setTenantName(String tenantName) { this.tenantName = tenantName; }
@@ -64,11 +68,35 @@ public class Invoice implements Serializable {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public long getCreatedAt() { return createdAt; }
-    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    public long getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Object val) {
+        if (val instanceof com.google.firebase.Timestamp) {
+            this.createdAt = ((com.google.firebase.Timestamp) val).toDate().getTime();
+        } else if (val instanceof Number) {
+            this.createdAt = ((Number) val).longValue();
+        } else if (val instanceof java.util.Date) {
+            this.createdAt = ((java.util.Date) val).getTime();
+        } else {
+            this.createdAt = 0L;
+        }
+    }
 
-    public long getPaidAt() { return paidAt; }
-    public void setPaidAt(long paidAt) { this.paidAt = paidAt; }
+    public long getPaidAt() {
+        return paidAt;
+    }
+    public void setPaidAt(Object val) {
+        if (val instanceof com.google.firebase.Timestamp) {
+            this.paidAt = ((com.google.firebase.Timestamp) val).toDate().getTime();
+        } else if (val instanceof Number) {
+            this.paidAt = ((Number) val).longValue();
+        } else if (val instanceof java.util.Date) {
+            this.paidAt = ((java.util.Date) val).getTime();
+        } else {
+            this.paidAt = 0L;
+        }
+    }
 
     // HÀM TÍNH TOÁN (ĐÃ SỬA DẤU TRỪ)
     public int getElectricUsage() {

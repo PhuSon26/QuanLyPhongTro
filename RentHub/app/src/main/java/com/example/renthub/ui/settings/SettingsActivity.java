@@ -178,6 +178,22 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
+        View btnNavIssue = findViewById(R.id.btnNavIssue);
+        if (btnNavIssue != null) {
+            btnNavIssue.setOnClickListener(v -> {
+                startActivity(new Intent(SettingsActivity.this, com.example.renthub.ui.issue.IssueListActivity.class));
+                finish();
+            });
+        }
+
+        View btnNavNews = findViewById(R.id.btnNavNews);
+        if (btnNavNews != null) {
+            btnNavNews.setOnClickListener(v -> {
+                startActivity(new Intent(SettingsActivity.this, com.example.renthub.ui.community.CommunityActivity.class));
+                finish();
+            });
+        }
+
         findViewById(R.id.itemEditProfile).setOnClickListener(v -> {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null) {

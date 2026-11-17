@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -86,6 +87,22 @@
             android:exported="false" />
         <activity
             android:name=".ui.settings.ChangePasswordActivity"
+            android:exported="false" />
+
+        <!-- CỘNG ĐỒNG / BẢNG TIN -->
+        <activity
+            android:name=".ui.community.CommunityActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.community.CreateAnnouncementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.community.AnnouncementDetailActivity"
+            android:exported="false" />
+
+        <!-- TRUNG TÂM THÔNG BÁO -->
+        <activity
+            android:name=".ui.notification.NotificationActivity"
             android:exported="false" />
     </application>
 </manifest>

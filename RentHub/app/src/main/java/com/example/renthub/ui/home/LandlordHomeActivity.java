@@ -36,6 +36,7 @@ public class LandlordHomeActivity extends AppCompatActivity {
     private TextView tvGreeting;
     private MaterialButton btnHomeViewRooms;
     private ImageButton btnHomeNotification;
+    private View badgeHomeNotificationDot;
 
     // THỐNG KÊ
     private TextView tvStat1, tvStat2, tvStat3, tvStat4;
@@ -54,6 +55,8 @@ public class LandlordHomeActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private com.google.firebase.firestore.ListenerRegistration notificationListener;
+    private boolean isFirstNotifLoad = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,18 +69,83 @@ public class LandlordHomeActivity extends AppCompatActivity {
         initViews();
         displayGreeting();
         setupListeners();
+        requestNotificationPermission();
+    }
+
+    private void requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadDashboardData();
+        listenToLandlordNotifications();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
+
+    private void listenToLandlordNotifications() {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+
+        notificationListener = db.collection("notifications")
+                .whereEqualTo("receiverId", uid)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null || snapshots == null) return;
+
+                    int unreadCount = 0;
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        Boolean read = doc.getBoolean("read");
+                        if (read == null || !read) {
+                            unreadCount++;
+                        }
+                    }
+
+                    if (badgeHomeNotificationDot != null) {
+                        badgeHomeNotificationDot.setVisibility(unreadCount > 0 ? View.VISIBLE : View.GONE);
+                    }
+                    if (btnHomeNotification != null) {
+                        btnHomeNotification.setColorFilter(unreadCount > 0 ? Color.parseColor("#E53935") : Color.parseColor("#14344B"));
+                    }
+
+                    if (!isFirstNotifLoad) {
+                        for (com.google.firebase.firestore.DocumentChange dc : snapshots.getDocumentChanges()) {
+                            if (dc.getType() == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
+                                try {
+                                    com.example.renthub.ui.notification.NotificationModel notif = dc.getDocument().toObject(com.example.renthub.ui.notification.NotificationModel.class);
+                                    if (notif != null && !notif.isRead()) {
+                                        Toast.makeText(LandlordHomeActivity.this, "🔔 " + notif.getTitle() + "\n" + notif.getBody(), Toast.LENGTH_LONG).show();
+                                    }
+                                } catch (Exception ex) {
+                                    android.util.Log.e("LandlordHome", "Lỗi nạp thông báo", ex);
+                                }
+                            }
+                        }
+                    }
+                    isFirstNotifLoad = false;
+                });
     }
 
     private void initViews() {
         tvGreeting = findViewById(R.id.tvGreeting);
         btnHomeViewRooms = findViewById(R.id.btnHomeViewRooms);
         btnHomeNotification = findViewById(R.id.btnHomeNotification);
+        badgeHomeNotificationDot = findViewById(R.id.badgeHomeNotificationDot);
 
         tvStat1 = findViewById(R.id.tvStat1);
         tvStat2 = findViewById(R.id.tvStat2);
@@ -138,11 +206,8 @@ public class LandlordHomeActivity extends AppCompatActivity {
 
         if (btnHomeNotification != null) {
             btnHomeNotification.setOnClickListener(v -> {
-                if (!pendingRequestList.isEmpty()) {
-                    Toast.makeText(LandlordHomeActivity.this, "Bạn có " + pendingRequestList.size() + " yêu cầu thuê phòng chờ duyệt!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(LandlordHomeActivity.this, "Không có thông báo mới", Toast.LENGTH_SHORT).show();
-                }
+                Intent intent = new Intent(LandlordHomeActivity.this, com.example.renthub.ui.notification.NotificationActivity.class);
+                startActivity(intent);
             });
         }
         View btnNavInvoice = findViewById(R.id.btnNavInvoice);
@@ -156,6 +221,16 @@ public class LandlordHomeActivity extends AppCompatActivity {
         if (btnNavIssues != null) {
             btnNavIssues.setOnClickListener(v -> {
                 Intent intent = new Intent(LandlordHomeActivity.this, com.example.renthub.ui.issue.IssueListActivity.class);
+                intent.putExtra("USER_ROLE", "LANDLORD");
+                startActivity(intent);
+            });
+        }
+
+        View btnNavNews = findViewById(R.id.btnNavNews);
+        if (btnNavNews != null) {
+            btnNavNews.setOnClickListener(v -> {
+                Intent intent = new Intent(LandlordHomeActivity.this, com.example.renthub.ui.community.CommunityActivity.class);
+                intent.putExtra("USER_ROLE", "LANDLORD");
                 startActivity(intent);
             });
         }
